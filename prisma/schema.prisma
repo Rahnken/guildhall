@@ -62,3 +62,12 @@ model SyncLog {
   uploadedBy String
   summary    String
 }
+
+/// What the public page says. Officers edit it on the Settings page; until
+/// they do, GUILD_NAME, GUILD_TAGLINE and DISCORD_INVITE_URL apply.
+model SiteSettings {
+  id          Int    @id @default(1)
+  name        String
+  description String @default("")
+  inviteUrl   String @default("")
+}

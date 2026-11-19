@@ -6,12 +6,45 @@ import { IngestRefused, ingest, summarize } from './ingest.server'
 import { getViewer, requireMember, requireOfficer } from './session.server'
 
 /** What every page needs: the guild's public details and who is signed in. */
-export const getSite = createServerFn({ method: 'GET' }).handler(() => ({
-  name: config.guildName,
-  tagline: config.tagline,
-  inviteUrl: config.inviteUrl,
-  viewer: getViewer(),
-}))
+export const getSite = createServerFn({ method: 'GET' }).handler(async () => {
+  // Officers' saved settings win; the environment only fills in before then.
+  const saved = await prisma.siteSettings.findUnique({ where: { id: 1 } })
+  return {
+    name: saved?.name ?? config.guildName,
+    description: saved?.description ?? config.tagline,
+    inviteUrl: saved?.inviteUrl ?? config.inviteUrl,
+    viewer: getViewer(),
+  }
+})
+
+const INVITE = /^https:\/\/(discord\.gg|discord\.com\/invite)\/[\w-]+$/
+
+/** The Settings page: what the public page says about the guild. */
+export const saveSettings = createServerFn({ method: 'POST' })
+  .validator((data: unknown) => {
+    const input = (data ?? {}) as Record<string, unknown>
+    const text = (v: unknown) => (typeof v === 'string' ? v.trim() : '')
+    const name = text(input.name)
+    const description = text(input.description).replace(/\r\n/g, '\n')
+    const inviteUrl = text(input.inviteUrl)
+    if (!name) throw new Error('The guild needs a name.')
+    if (name.length > 60) throw new Error('Keep the name under 60 characters.')
+    if (description.length > 2000)
+      throw new Error('Keep the description under 2,000 characters.')
+    if (inviteUrl && !INVITE.test(inviteUrl))
+      throw new Error(
+        'The invite must be a Discord invite link, like https://discord.gg/abc123.',
+      )
+    return { name, description, inviteUrl }
+  })
+  .handler(async ({ data }) => {
+    requireOfficer()
+    await prisma.siteSettings.upsert({
+      where: { id: 1 },
+      create: { id: 1, ...data },
+      update: data,
+    })
+  })
 
 export const getOverview = createServerFn({ method: 'GET' }).handler(
   async () => {

@@ -30,8 +30,10 @@ function Home() {
       <div className="mx-auto max-w-2xl py-16 text-center">
         <img src="/logo.svg" alt="" className="mx-auto mb-6 size-20" />
         <h1 className="text-4xl font-semibold text-stone-50">{site.name}</h1>
-        {site.tagline && (
-          <p className="mt-4 text-lg text-stone-300">{site.tagline}</p>
+        {site.description && (
+          <p className="mt-4 text-lg whitespace-pre-line text-stone-300">
+            {site.description}
+          </p>
         )}
         {error && (
           <p className="mt-6 rounded border border-red-900 bg-red-950/50 px-4 py-3 text-sm text-red-200">

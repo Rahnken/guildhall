@@ -1,6 +1,5 @@
 # One small machine with the SQLite database on a volume.
-# Pick your own app name (it becomes <name>.fly.dev) before `fly launch`.
-app = "guildhall-change-me"
+app = "fluffers-guildhall"
 primary_region = "yyz"
 
 [env]

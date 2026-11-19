@@ -6,7 +6,7 @@ A website and Discord bot for a WoW Forever guild. An in-game addon records the 
 
 Stack: TanStack Start (React 19, Vite), Tailwind CSS v4, Prisma 7 with SQLite. It runs as one small machine on Fly.io with the database on a volume.
 
-The guild's name, tagline and Discord server all come from environment variables, so nothing in the repository is specific to one guild.
+The guild's name, description and invite link are data: officers edit them on the Settings page, and `GUILD_NAME`, `GUILD_TAGLINE` and `DISCORD_INVITE_URL` only apply until they first save. The Discord server comes from environment variables.
 
 ## How the data gets there
 
@@ -27,6 +27,7 @@ Only one person with the addon is needed. Everyone else just uses the site or Di
 | `/roster`            | Members         | Every character: level, class, rank, zone, last seen, public note. Search and sort    |
 | `/bank`              | Members         | Guild bank by tab, with search, and the bank's gold                                   |
 | `/sync`              | Officers        | Upload the addon's saved file from the browser; recent upload history                 |
+| `/settings`          | Officers        | Edit the guild name, description and Discord invite shown on the public page          |
 | `/roster` in Discord | Server members  | Roster summary                                                                        |
 | `/who <name>`        | Server members  | Look up a character                                                                   |
 | `/bank [item]`       | Server members  | Search the bank, or list its tabs                                                     |

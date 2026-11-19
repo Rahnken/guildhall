@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BankRouteImport } from './routes/bank'
 import { Route as RosterRouteImport } from './routes/roster'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SyncRouteImport } from './routes/sync'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiIngestRouteImport } from './routes/api/ingest'
@@ -33,6 +34,11 @@ const BankRoute = BankRouteImport.update({
 const RosterRoute = RosterRouteImport.update({
   id: '/roster',
   path: '/roster',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SyncRoute = SyncRouteImport.update({
@@ -75,6 +81,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/bank': typeof BankRoute
   '/roster': typeof RosterRoute
+  '/settings': typeof SettingsRoute
   '/sync': typeof SyncRoute
   '/api/health': typeof ApiHealthRoute
   '/api/ingest': typeof ApiIngestRoute
@@ -87,6 +94,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/bank': typeof BankRoute
   '/roster': typeof RosterRoute
+  '/settings': typeof SettingsRoute
   '/sync': typeof SyncRoute
   '/api/health': typeof ApiHealthRoute
   '/api/ingest': typeof ApiIngestRoute
@@ -100,6 +108,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/bank': typeof BankRoute
   '/roster': typeof RosterRoute
+  '/settings': typeof SettingsRoute
   '/sync': typeof SyncRoute
   '/api/health': typeof ApiHealthRoute
   '/api/ingest': typeof ApiIngestRoute
@@ -114,6 +123,7 @@ export interface FileRouteTypes {
     | '/'
     | '/bank'
     | '/roster'
+    | '/settings'
     | '/sync'
     | '/api/health'
     | '/api/ingest'
@@ -126,6 +136,7 @@ export interface FileRouteTypes {
     | '/'
     | '/bank'
     | '/roster'
+    | '/settings'
     | '/sync'
     | '/api/health'
     | '/api/ingest'
@@ -138,6 +149,7 @@ export interface FileRouteTypes {
     | '/'
     | '/bank'
     | '/roster'
+    | '/settings'
     | '/sync'
     | '/api/health'
     | '/api/ingest'
@@ -151,6 +163,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BankRoute: typeof BankRoute
   RosterRoute: typeof RosterRoute
+  SettingsRoute: typeof SettingsRoute
   SyncRoute: typeof SyncRoute
   ApiHealthRoute: typeof ApiHealthRoute
   ApiIngestRoute: typeof ApiIngestRoute
@@ -181,6 +194,13 @@ declare module '@tanstack/react-router' {
       path: '/roster'
       fullPath: '/roster'
       preLoaderRoute: typeof RosterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sync': {
@@ -239,6 +259,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BankRoute: BankRoute,
   RosterRoute: RosterRoute,
+  SettingsRoute: SettingsRoute,
   SyncRoute: SyncRoute,
   ApiHealthRoute: ApiHealthRoute,
   ApiIngestRoute: ApiIngestRoute,

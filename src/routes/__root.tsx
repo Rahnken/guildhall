@@ -57,9 +57,18 @@ function RootComponent() {
                 Bank
               </Link>
               {viewer.officer && (
-                <Link to="/sync" className={link} activeProps={activeLink}>
-                  Sync
-                </Link>
+                <>
+                  <Link to="/sync" className={link} activeProps={activeLink}>
+                    Sync
+                  </Link>
+                  <Link
+                    to="/settings"
+                    className={link}
+                    activeProps={activeLink}
+                  >
+                    Settings
+                  </Link>
+                </>
               )}
             </>
           )}

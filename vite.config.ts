@@ -6,5 +6,7 @@ import { nitro } from 'nitro/vite'
 
 export default defineConfig({
   resolve: { tsconfigPaths: true },
+  // Lets a Cloudflare quick tunnel reach the dev server, for testing Discord.
+  server: { allowedHosts: ['.trycloudflare.com'] },
   plugins: [nitro(), tailwindcss(), tanstackStart(), viteReact()],
 })

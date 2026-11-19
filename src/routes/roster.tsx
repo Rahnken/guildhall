@@ -1,8 +1,16 @@
-import { createFileRoute, redirect } from '@tanstack/react-router'
-import { useMemo, useState } from 'react'
+import { createFileRoute, redirect, useRouter } from '@tanstack/react-router'
+import { useEffect, useMemo, useState } from 'react'
 
 import { Card, Input, Select, Table } from '../components/ui'
-import { classColor, className, lastSeen, when } from '../lib/format'
+import {
+  ONLINE_FRESH_MINUTES,
+  ago,
+  classColor,
+  className,
+  lastSeen,
+  minutesSince,
+  when,
+} from '../lib/format'
 import { getRoster } from '../server/guild.functions'
 
 export const Route = createFileRoute('/roster')({
@@ -16,10 +24,30 @@ export const Route = createFileRoute('/roster')({
 type Sort = 'rank' | 'level' | 'name' | 'seen'
 
 function Roster() {
-  const { characters, rosterAt } = Route.useLoaderData()
+  const { characters, rosterAt, now: loadedAt } = Route.useLoaderData()
+  const router = useRouter()
   const [query, setQuery] = useState('')
   const [classToken, setClassToken] = useState('')
   const [sort, setSort] = useState<Sort>('rank')
+  const [onlineOnly, setOnlineOnly] = useState(false)
+
+  // Starts on the server's clock so the first render matches, then follows
+  // this browser's. Each minute it also asks the server for a newer roster.
+  const [now, setNow] = useState(() => new Date(loadedAt).getTime())
+  useEffect(() => {
+    setNow(Date.now())
+    const timer = setInterval(() => {
+      setNow(Date.now())
+      if (document.visibilityState === 'visible') void router.invalidate()
+    }, 60_000)
+    return () => clearInterval(timer)
+  }, [router])
+
+  // "Online" is a snapshot from the last upload: current only while recent.
+  const age = minutesSince(rosterAt, now)
+  const fresh = age !== null && age < ONLINE_FRESH_MINUTES
+  const onlineCount = characters.filter((c) => c.online).length
+  const filterOnline = onlineOnly && fresh
 
   const classes = useMemo(
     () => [...new Set(characters.map((c) => c.classToken))].sort(),
@@ -30,6 +58,7 @@ function Roster() {
     const q = query.trim().toLowerCase()
     const list = characters.filter(
       (c) =>
+        (!filterOnline || c.online) &&
         (!classToken || c.classToken === classToken) &&
         (!q ||
           c.name.toLowerCase().includes(q) ||
@@ -46,7 +75,7 @@ function Roster() {
           (b.online ? -1 : (b.lastOnlineHours ?? Infinity)),
       )
     return list
-  }, [characters, query, classToken, sort])
+  }, [characters, query, classToken, sort, filterOnline])
 
   return (
     <Card
@@ -84,7 +113,26 @@ function Roster() {
           <option value="name">Sort by name</option>
           <option value="seen">Sort by last seen</option>
         </Select>
+        <label
+          className={`flex items-center gap-2 text-sm ${fresh ? 'text-stone-200' : 'text-stone-500'}`}
+        >
+          <input
+            type="checkbox"
+            checked={filterOnline}
+            disabled={!fresh}
+            onChange={(e) => setOnlineOnly(e.target.checked)}
+            className="size-4 accent-sky-500"
+          />
+          Online only{fresh ? ` (${onlineCount})` : ''}
+        </label>
       </div>
+      {age !== null && (
+        <p className="mb-3 text-xs text-stone-500">
+          {fresh
+            ? `Online status as of ${ago(age)}.`
+            : `Online status is from ${ago(age)}, too old to filter by. It refreshes when someone with the addon types /reload.`}
+        </p>
+      )}
       <Table
         head={['Name', 'Level', 'Class', 'Rank', 'Zone', 'Last seen', 'Note']}
       >
@@ -103,9 +151,11 @@ function Roster() {
             <td className="px-2 py-1.5 text-stone-300">{c.rank}</td>
             <td className="px-2 py-1.5 text-stone-400">{c.zone}</td>
             <td
-              className={`px-2 py-1.5 ${c.online ? 'text-emerald-400' : 'text-stone-400'}`}
+              className={`px-2 py-1.5 ${c.online && fresh ? 'text-emerald-400' : 'text-stone-400'}`}
             >
-              {lastSeen(c.online, c.lastOnlineHours)}
+              {c.online && !fresh && age !== null
+                ? `online ${ago(age)}`
+                : lastSeen(c.online, c.lastOnlineHours)}
             </td>
             <td className="px-2 py-1.5 text-stone-400">{c.note}</td>
           </tr>

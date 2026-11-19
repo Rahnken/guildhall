@@ -42,3 +42,26 @@ export function when(date: Date | string | null): string {
     timeStyle: 'short',
   })
 }
+
+/**
+ * The roster's "online" flags are a snapshot from the last upload. Past this
+ * age they are shown as history, not as who is online now.
+ */
+export const ONLINE_FRESH_MINUTES = 15
+
+/** Whole minutes from `date` to `now`; null when there is no date. */
+export function minutesSince(
+  date: Date | string | null,
+  now: number,
+): number | null {
+  if (!date) return null
+  return Math.max(0, Math.floor((now - new Date(date).getTime()) / 60000))
+}
+
+/** "just now", "12 min ago", "3 h ago", "2 days ago". */
+export function ago(minutes: number): string {
+  if (minutes < 1) return 'just now'
+  if (minutes < 60) return `${minutes} min ago`
+  if (minutes < 48 * 60) return `${Math.floor(minutes / 60)} h ago`
+  return `${Math.floor(minutes / (24 * 60))} days ago`
+}

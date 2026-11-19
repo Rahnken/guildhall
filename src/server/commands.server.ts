@@ -1,6 +1,12 @@
 /** Answers Discord slash commands; src/lib/commands.ts defines them. */
 import { prisma } from '#/db'
-import { className, gold, lastSeen } from '#/lib/format'
+import {
+  ONLINE_FRESH_MINUTES,
+  className,
+  gold,
+  lastSeen,
+  minutesSince,
+} from '#/lib/format'
 
 type Interaction = {
   data?: {
@@ -52,12 +58,21 @@ async function roster(): Promise<string> {
     .map((c) => `${c.name} (${c.level})`)
     .join(', ')
 
-  return [
+  const lines = [
     `**${guild.name}**: ${characters.length} members`,
     `**Classes:** ${classes}`,
     `**Highest level:** ${top}`,
-    `Roster updated ${stamp(guild.rosterAt)}`,
-  ].join('\n')
+  ]
+  // Who is online is only worth saying while the upload is recent.
+  const age = minutesSince(guild.rosterAt, Date.now())
+  if (age !== null && age < ONLINE_FRESH_MINUTES) {
+    const online = characters.filter((c) => c.online).map((c) => c.name)
+    const shown = online.slice(0, 20).join(', ')
+    const more = online.length > 20 ? ` and ${online.length - 20} more` : ''
+    lines.push(`**Online (${online.length}):** ${shown || 'nobody'}${more}`)
+  }
+  lines.push(`Roster updated ${stamp(guild.rosterAt)}`)
+  return lines.join('\n')
 }
 
 async function who(query: string): Promise<string> {

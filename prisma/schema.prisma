@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+/// The one guild this site serves. Created by the first upload, which also
+/// fixes which in-game guild later uploads must be for.
+model Guild {
+  id         Int       @id @default(1)
+  name       String
+  realm      String
+  faction    String    @default("")
+  rosterAt   DateTime?
+  rosterBy   String    @default("")
+  bankCopper BigInt?
+}
+
+/// A guild member's character, replaced from each roster upload.
+model Character {
+  id              Int      @id @default(autoincrement())
+  name            String   @unique
+  rank            String   @default("")
+  rankIndex       Int      @default(0)
+  level           Int      @default(0)
+  classToken      String   @default("")
+  zone            String   @default("")
+  note            String   @default("")
+  online          Boolean  @default(false)
+  /// Hours since last seen when the roster was captured; null while online.
+  lastOnlineHours Int?
+  firstSeen       DateTime @default(now())
+}
+
+model BankTab {
+  index     Int        @id
+  name      String
+  scannedAt DateTime
+  items     BankItem[]
+}
+
+model BankItem {
+  id       Int     @id @default(autoincrement())
+  tabIndex Int
+  tab      BankTab @relation(fields: [tabIndex], references: [index], onDelete: Cascade)
+  slot     Int
+  itemId   Int
+  name     String
+  count    Int
+
+  @@unique([tabIndex, slot])
+  @@index([name])
+}
+
+/// One row per upload, for the officers' sync history.
+model SyncLog {
+  id         Int      @id @default(autoincrement())
+  receivedAt DateTime @default(now())
+  uploadedBy String
+  summary    String
+}

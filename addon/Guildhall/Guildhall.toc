@@ -1,0 +1,8 @@
+## Interface: 16001
+## Title: |cff7dd3fcGuildhall|r
+## Notes: Records the guild roster and guild bank for the guild's website.
+## Author: Rahnken
+## Version: 0.1.0
+## SavedVariables: GuildhallDB
+
+Guildhall.lua

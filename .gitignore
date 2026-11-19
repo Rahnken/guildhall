@@ -1,0 +1,22 @@
+node_modules
+.DS_Store
+dist
+dist-ssr
+*.local
+.env
+.nitro
+.tanstack
+.wrangler
+.output
+.vinxi
+__unconfig*
+todos.json
+
+# Prisma client (run npm run db:generate)
+src/generated
+
+# Local SQLite database
+*.db
+*.db-journal
+*.db-wal
+*.db-shm

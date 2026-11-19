@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Guildhall">
+  <rect x="1" y="1" width="62" height="62" rx="14" fill="#0c0a09" stroke="#292524" stroke-width="2" />
+  <path d="M18 12h28v30l-14 10-14-10z" fill="#0c4a6e" stroke="#38bdf8" stroke-width="3" stroke-linejoin="round" />
+  <path d="M32 19l3.2 6.6 7.3 1-5.3 5.100 1.300 7.200-6.500-3.400-6.500 3.400 1.300-7.200-5.300-5.100 7.300-1z" fill="#7dd3fc" />
+</svg>

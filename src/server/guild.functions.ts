@@ -81,7 +81,8 @@ export const getRoster = createServerFn({ method: 'GET' }).handler(async () => {
       orderBy: [{ rankIndex: 'asc' }, { level: 'desc' }, { name: 'asc' }],
     }),
   ])
-  return { rosterAt: guild?.rosterAt ?? null, characters }
+  // `now` is the server's clock, so the page's first render agrees with it.
+  return { rosterAt: guild?.rosterAt ?? null, now: new Date(), characters }
 })
 
 export const getBank = createServerFn({ method: 'GET' }).handler(async () => {

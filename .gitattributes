@@ -1,0 +1,4 @@
+# Keep LF line endings on every machine, so formatting checks agree between
+# Windows and the Linux build.
+* text=auto eol=lf
+*.png binary

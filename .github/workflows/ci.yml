@@ -1,0 +1,64 @@
+name: CI
+
+# Every pull request is checked. A push to main (a merged pull request) is
+# checked again and then deployed to Fly.io.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Check
+    runs-on: ubuntu-latest
+    env:
+      # Generating the Prisma client and building need a URL but no database.
+      DATABASE_URL: file:./ci.db
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+      - name: Formatting
+        run: npm run check
+      - name: Lint
+        run: npm run lint
+      - name: Types
+        run: npm run typecheck
+      - name: Addon
+        run: npm run test:addon
+      - name: Build
+        run: npm run build
+
+  deploy:
+    name: Deploy
+    needs: check
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    # One deploy at a time; a newer one waits for the one in progress.
+    concurrency:
+      group: deploy
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: flyctl deploy --remote-only --ha=false
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+      - name: Check the site answers
+        run: |
+          app=$(grep -m1 '^app' fly.toml | cut -d'"' -f2)
+          for attempt in 1 2 3 4 5 6; do
+            if curl --fail --silent --max-time 10 "https://$app.fly.dev/api/health"; then
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "https://$app.fly.dev/api/health did not answer after the deploy"
+          exit 1

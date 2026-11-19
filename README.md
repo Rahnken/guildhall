@@ -62,7 +62,7 @@ Officer notes are never recorded. `/gh status` shows what is saved and `/gh scan
 
 Install it with `npm run addon:install`, or copy the `addon/Guildhall` folder into the game's `Interface/AddOns`. Set `WOW_FOREVER_DIR` in `.env.local` if the game is not in the default location.
 
-The addon has been run against a mock of the game's functions, not yet inside the Forever client. The first in-game session should confirm that the roster and bank functions it calls exist there.
+The addon has been confirmed working in the Forever client.
 
 ## Uploading
 
@@ -108,6 +108,20 @@ fly deploy
 The container applies database migrations each time it starts. The machine is kept running so slash commands answer within Discord's three-second limit.
 
 Fly takes daily snapshots of the volume. That is the only backup, so check the retention setting on the volume. Everything in the database can also be rebuilt by uploading again.
+
+## Making changes
+
+`main` is what is live. Nothing is committed to it directly:
+
+1. Branch from `main` and commit there.
+2. Open a pull request. GitHub Actions checks formatting, lint, types, the addon test and the build.
+3. Merge once the checks pass. The same workflow then deploys `main` to Fly.io and confirms the site answers.
+
+Before pushing, the same checks run locally with `npm run check`, `npm run lint`, `npm run typecheck`, `npm run test:addon` and `npm run build`.
+
+The deploy needs one repository secret, `FLY_API_TOKEN`: a deploy token for the app, made with `flyctl tokens create deploy`.
+
+`npm run test:addon` runs the addon in a Lua interpreter against a fake game client (`tests/addon.test.lua`). It covers the roster and bank logic, not whether the real client has the functions the addon calls.
 
 ## Where things are
 

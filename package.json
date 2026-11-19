@@ -16,9 +16,11 @@
     "addon:install": "dotenv -e .env.local -- node scripts/install-addon.mjs",
     "sync": "dotenv -e .env.local -- tsx scripts/sync.ts",
     "discord:register": "dotenv -e .env.local -- tsx scripts/register-commands.mjs",
-    "lint": "eslint",
+    "lint": "eslint src scripts tests",
     "format": "prettier --write . && eslint --fix",
-    "check": "prettier --check ."
+    "check": "prettier --check .",
+    "typecheck": "tsc --noEmit",
+    "test:addon": "node tests/addon.test.mjs"
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.4.2",
@@ -40,6 +42,7 @@
     "@vitejs/plugin-react": "^6.0.1",
     "dotenv-cli": "^11.0.0",
     "eslint": "^9.20.0",
+    "fengari": "^0.1.5",
     "prettier": "^3.8.1",
     "tsx": "^4.21.0",
     "typescript": "^6.0.2",

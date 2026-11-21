@@ -33,6 +33,21 @@ model Character {
   /// Hours since last seen when the roster was captured; null while online.
   lastOnlineHours Int?
   firstSeen       DateTime @default(now())
+  /// Who says this character is theirs. Kept across roster uploads; gone
+  /// when the character leaves the guild.
+  memberId        String?
+  member          Member?  @relation(fields: [memberId], references: [id], onDelete: SetNull)
+  /// The one character its member is known by; their others are alts.
+  main            Boolean  @default(false)
+
+  @@index([memberId])
+}
+
+/// Someone who has signed in with Discord. The id is their Discord user id.
+model Member {
+  id         String      @id
+  name       String
+  characters Character[]
 }
 
 model BankTab {

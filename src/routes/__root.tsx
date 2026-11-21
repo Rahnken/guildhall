@@ -53,6 +53,9 @@ function RootComponent() {
               <Link to="/roster" className={link} activeProps={activeLink}>
                 Roster
               </Link>
+              <Link to="/crafting" className={link} activeProps={activeLink}>
+                Crafting
+              </Link>
               <Link to="/bank" className={link} activeProps={activeLink}>
                 Bank
               </Link>

@@ -15,6 +15,10 @@ import {
 } from 'node:fs'
 import { join } from 'node:path'
 
+import {
+  craftingFromSavedVariables,
+  describeCrafting,
+} from '../src/lib/crafting'
 import { describe, snapshotsFromSavedVariables } from '../src/lib/snapshot'
 
 const args = process.argv.slice(2)
@@ -52,11 +56,40 @@ function locate(): string {
   return files[0]
 }
 
+/** Sends the professions of the characters played on this account. */
+async function uploadCrafting(source: string): Promise<void> {
+  const crafting = craftingFromSavedVariables(source)
+  if (crafting.characters.length === 0) return
+  if (flag('dry')) {
+    console.log(`Would upload professions. ${describeCrafting(crafting)}`)
+    return
+  }
+  const response = await fetch(`${siteUrl}/api/crafting`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(crafting),
+  })
+  const body = (await response.json().catch(() => ({}))) as {
+    lines?: Array<string>
+    error?: string
+  }
+  if (response.ok) for (const line of body.lines ?? []) console.log(line)
+  else
+    console.error(
+      `Professions refused (${response.status}): ${body.error ?? 'no reason given'}`,
+    )
+}
+
 async function upload(file: string): Promise<boolean> {
-  const snapshots = snapshotsFromSavedVariables(readFileSync(file, 'utf8'))
+  const source = readFileSync(file, 'utf8')
+  const snapshots = snapshotsFromSavedVariables(source)
   if (snapshots.length === 0) {
+    await uploadCrafting(source)
     console.log(
-      'No guild data saved yet. Open the guild roster in game, then /reload.',
+      'No roster or bank saved yet. Open the guild roster in game, then /reload.',
     )
     return false
   }
@@ -86,6 +119,8 @@ async function upload(file: string): Promise<boolean> {
       )
     }
   }
+  // After the roster, so characters that just joined are known.
+  await uploadCrafting(source)
   return ok
 }
 

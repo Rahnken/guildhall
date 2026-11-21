@@ -39,8 +39,34 @@ model Character {
   member          Member?  @relation(fields: [memberId], references: [id], onDelete: SetNull)
   /// The one character its member is known by; their others are alts.
   main            Boolean  @default(false)
+  professions     Profession[]
 
   @@index([memberId])
+}
+
+/// A profession a character has, as their Guildhall addon last saw it.
+model Profession {
+  id          Int           @id @default(autoincrement())
+  characterId Int
+  character   Character     @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  name        String
+  skill       Int
+  maxSkill    Int
+  scannedAt   DateTime
+  recipes     KnownRecipe[]
+
+  @@unique([characterId, name])
+  @@index([name])
+}
+
+/// A recipe from src/data/recipes.json that a character knows.
+model KnownRecipe {
+  professionId Int
+  profession   Profession @relation(fields: [professionId], references: [id], onDelete: Cascade)
+  spellId      Int
+
+  @@id([professionId, spellId])
+  @@index([spellId])
 }
 
 /// Someone who has signed in with Discord. The id is their Discord user id.

@@ -1,6 +1,7 @@
 {
   "name": "guildhall",
   "private": true,
+  "license": "GPL-3.0-or-later",
   "type": "module",
   "imports": {
     "#/*": "./src/*"
@@ -15,6 +16,11 @@
     "db:studio": "dotenv -e .env.local -- prisma studio",
     "addon:install": "dotenv -e .env.local -- node scripts/install-addon.mjs",
     "sync": "dotenv -e .env.local -- tsx scripts/sync.ts",
+    "icons:ids": "tsx scripts/icons.ts ids",
+    "icons:build": "dotenv -e .env.local -- tsx scripts/icons.ts build",
+    "icons:read": "dotenv -e .env.local -- tsx scripts/icons.ts read",
+    "sync:watch": "dotenv -e .env.local -- tsx scripts/sync.ts --watch",
+    "recipes:import": "dotenv -e .env.local -- node scripts/import-recipes.mjs",
     "discord:register": "dotenv -e .env.local -- tsx scripts/register-commands.mjs",
     "lint": "eslint src scripts tests",
     "format": "prettier --write . && eslint --fix",
@@ -44,6 +50,7 @@
     "eslint": "^9.20.0",
     "fengari": "^0.1.5",
     "prettier": "^3.8.1",
+    "sharp": "^0.35.5",
     "tsx": "^4.21.0",
     "typescript": "^6.0.2",
     "vite": "^8.0.0"

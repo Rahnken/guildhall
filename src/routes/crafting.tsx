@@ -1,7 +1,16 @@
 import { createFileRoute, redirect, useRouter } from '@tanstack/react-router'
 import { useEffect, useMemo, useState } from 'react'
 
-import { Card, ErrorText, Input, Table, cx, useAction } from '../components/ui'
+import {
+  Button,
+  Card,
+  ErrorText,
+  Input,
+  Select,
+  Table,
+  cx,
+  useAction,
+} from '../components/ui'
 import { craftingFromSavedVariables } from '../lib/crafting'
 import { classColor, when } from '../lib/format'
 import {
@@ -11,6 +20,7 @@ import {
   getRecipeBook,
   uploadCrafting,
 } from '../server/crafting.functions'
+import { createRequest, getMyCharacters } from '../server/requests.functions'
 
 type Search = { p?: string; r?: number }
 
@@ -27,12 +37,13 @@ export const Route = createFileRoute('/crafting')({
   // Opening a recipe must not fetch the whole list again.
   loaderDeps: ({ search }) => ({ p: search.p }),
   loader: async ({ deps }) => {
-    const [book, crafters, mine] = await Promise.all([
+    const [book, crafters, mine, characters] = await Promise.all([
       getRecipeBook({ data: { profession: deps.p ?? '' } }),
       getCrafters(),
       getMyRecipes(),
+      getMyCharacters(),
     ])
-    return { book, crafters, mine }
+    return { book, crafters, mine, characters }
   },
   component: Crafting,
 })
@@ -97,7 +108,7 @@ function Crafter(props: {
 }
 
 function Crafting() {
-  const { book, crafters, mine } = Route.useLoaderData()
+  const { book, crafters, mine, characters } = Route.useLoaderData()
   const { r: open } = Route.useSearch()
   const navigate = Route.useNavigate()
   const show = (next: Search) =>
@@ -125,6 +136,7 @@ function Crafting() {
         />
         <RecipeDetail
           open={open}
+          characters={characters}
           onClose={() => show({ p: book.profession, r: undefined })}
         />
       </section>
@@ -309,6 +321,8 @@ function RecipeList(props: {
 
 function RecipeDetail(props: {
   open: number | undefined
+  /** The viewer's own characters, to send a request to. */
+  characters: Array<string>
   onClose: () => void
 }) {
   const { open } = props
@@ -408,46 +422,12 @@ function RecipeDetail(props: {
 
       {detail.tooltip.length > 0 && <Tooltip lines={detail.tooltip} />}
 
-      <h3 className="mb-1 mt-4 text-xs font-semibold uppercase tracking-wide text-stone-400">
-        Materials
-      </h3>
-      {detail.reagents.length === 0 ? (
-        <p className="text-sm text-stone-500">None listed.</p>
-      ) : (
-        <ul className="divide-y divide-stone-800/60 rounded border border-stone-800 text-sm">
-          {detail.reagents.map((reagent) => (
-            <li
-              key={reagent.itemId}
-              className="flex items-baseline justify-between gap-3 px-2.5 py-1.5"
-            >
-              <span className="flex min-w-0 items-center gap-2">
-                <Icon icon={reagent.icon} size={22} />
-                <span className="tabular-nums text-stone-400">
-                  {reagent.count}×
-                </span>
-                <a
-                  href={wowhead('item', reagent.itemId)}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-stone-200 hover:underline"
-                >
-                  {reagent.name}
-                </a>
-              </span>
-              <span
-                className={cx(
-                  'shrink-0 text-xs',
-                  reagent.inBank >= reagent.count
-                    ? 'text-emerald-400'
-                    : 'text-stone-500',
-                )}
-              >
-                {reagent.inBank} in bank
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
+      <MaterialsAndRequest
+        // A different recipe starts with a closed, empty form.
+        key={detail.spellId}
+        detail={detail}
+        characters={props.characters}
+      />
 
       <h3 className="mb-1 mt-4 text-xs font-semibold uppercase tracking-wide text-stone-400">
         Who can make it
@@ -474,6 +454,264 @@ function RecipeDetail(props: {
         </ul>
       )}
     </div>
+  )
+}
+
+/**
+ * The materials, and the request form whose "How many" multiplies them. A
+ * material that is itself crafted shows what it is made from underneath.
+ */
+function MaterialsAndRequest(props: {
+  detail: Detail
+  characters: Array<string>
+}) {
+  const { detail } = props
+  const navigate = Route.useNavigate()
+  const [times, setTimes] = useState(1)
+  return (
+    <>
+      <h3 className="mb-1 mt-4 text-xs font-semibold uppercase tracking-wide text-stone-400">
+        Materials{times > 1 && ` for ${times}`}
+      </h3>
+      {detail.reagents.length === 0 ? (
+        <p className="text-sm text-stone-500">None listed.</p>
+      ) : (
+        <ul className="divide-y divide-stone-800/60 rounded border border-stone-800 text-sm">
+          {detail.reagents.map((reagent) => {
+            const need = reagent.count * times
+            const from = reagent.from
+            // Whole crafts of the material, each using its own materials.
+            const crafts = from ? Math.ceil(need / from.makes) : 0
+            return (
+              <li key={reagent.itemId} className="px-2.5 py-1.5">
+                <Material
+                  {...reagent}
+                  need={need}
+                  href={wowhead('item', reagent.itemId)}
+                />
+                {from && (
+                  <div className="ml-3 mt-1 border-l border-stone-800 pl-3">
+                    <button
+                      type="button"
+                      className="mb-0.5 text-xs text-sky-300 hover:underline"
+                      onClick={() =>
+                        navigate({
+                          search: { p: from.profession, r: from.spellId },
+                          replace: true,
+                          resetScroll: false,
+                        })
+                      }
+                    >
+                      or made with {from.profession} from
+                    </button>
+                    {from.reagents.map((raw) => (
+                      <Material
+                        key={raw.itemId}
+                        {...raw}
+                        need={raw.count * crafts}
+                        href={wowhead('item', raw.itemId)}
+                        small
+                      />
+                    ))}
+                  </div>
+                )}
+              </li>
+            )
+          })}
+        </ul>
+      )}
+      <RequestForm {...props} onQuantity={setTimes} />
+    </>
+  )
+}
+
+/** One line of a materials list: icon, how many, name, and the bank's stock. */
+function Material(props: {
+  name: string
+  icon: number | null
+  need: number
+  inBank: number
+  href: string
+  small?: boolean
+}) {
+  return (
+    <div
+      className={cx(
+        'flex items-baseline justify-between gap-3',
+        props.small && 'py-0.5 text-xs',
+      )}
+    >
+      <span className="flex min-w-0 items-center gap-2">
+        <Icon icon={props.icon} size={props.small ? 16 : 22} />
+        <span className="tabular-nums text-stone-400">{props.need}×</span>
+        <a
+          href={props.href}
+          target="_blank"
+          rel="noreferrer"
+          className={cx(
+            'hover:underline',
+            props.small ? 'text-stone-300' : 'text-stone-200',
+          )}
+        >
+          {props.name}
+        </a>
+      </span>
+      <span
+        className={cx(
+          'shrink-0 text-xs',
+          props.inBank >= props.need ? 'text-emerald-400' : 'text-stone-500',
+        )}
+      >
+        {props.inBank} in bank
+      </span>
+    </div>
+  )
+}
+
+/** "Request this": asks the guild's crafters to make the open recipe. */
+function RequestForm(props: {
+  detail: Detail
+  characters: Array<string>
+  /** Told how many are wanted, so the materials above can show totals. */
+  onQuantity: (quantity: number) => void
+}) {
+  const { detail, characters } = props
+  const navigate = Route.useNavigate()
+  const { busy, error, run } = useAction()
+  const [open, setOpen] = useState(false)
+  const [quantity, setQuantity] = useState('1')
+  const [deliverTo, setDeliverTo] = useState(characters[0] ?? '')
+  const [hasMaterials, setHasMaterials] = useState(false)
+  const [ask, setAsk] = useState('')
+  const [note, setNote] = useState('')
+  // Only crafters with a known player can be asked by name.
+  const askable = detail.crafters.filter((c) => c.player && !c.mine)
+
+  if (!open)
+    return (
+      <Button className="mt-4" onClick={() => setOpen(true)}>
+        Request this
+      </Button>
+    )
+
+  const send = () =>
+    run(async () => {
+      await createRequest({
+        data: {
+          spellId: detail.spellId,
+          quantity: Number(quantity),
+          deliverTo,
+          hasMaterials,
+          ask,
+          note,
+        },
+      })
+      await navigate({ to: '/requests' })
+    })
+
+  const label = 'mb-1 block text-xs text-stone-400'
+  return (
+    <form
+      className="mt-4 space-y-3 rounded border border-amber-500/40 bg-amber-500/5 p-3 text-sm"
+      onSubmit={(e) => {
+        e.preventDefault()
+        void send()
+      }}
+    >
+      <div className="flex flex-wrap gap-3">
+        <label>
+          <span className={label}>How many</span>
+          <Input
+            type="number"
+            min={1}
+            max={200}
+            value={quantity}
+            onChange={(e) => {
+              setQuantity(e.target.value)
+              const n = Math.floor(Number(e.target.value))
+              props.onQuantity(n >= 1 ? Math.min(n, 200) : 1)
+            }}
+            className="w-20"
+          />
+        </label>
+        <label className="min-w-0 flex-1">
+          <span className={label}>Send it to</span>
+          {characters.length > 0 ? (
+            <Select
+              value={deliverTo}
+              onChange={(e) => setDeliverTo(e.target.value)}
+              className="w-full"
+            >
+              {characters.map((name) => (
+                <option key={name}>{name}</option>
+              ))}
+            </Select>
+          ) : (
+            <Input
+              placeholder="Your character's name"
+              value={deliverTo}
+              onChange={(e) => setDeliverTo(e.target.value)}
+              className="w-full"
+            />
+          )}
+        </label>
+      </div>
+      <label className="block">
+        <span className={label}>Ask</span>
+        <Select
+          value={ask}
+          onChange={(e) => setAsk(e.target.value)}
+          className="w-full"
+        >
+          <option value="">Anyone who can make it</option>
+          {askable.map((c) => (
+            <option key={c.character} value={c.character}>
+              {c.player} ({c.character}, {c.skill})
+            </option>
+          ))}
+        </Select>
+      </label>
+      <label className="flex items-center gap-2 text-stone-200">
+        <input
+          type="checkbox"
+          checked={hasMaterials}
+          onChange={(e) => setHasMaterials(e.target.checked)}
+        />
+        I will send the materials
+      </label>
+      <label className="block">
+        <span className={label}>Note (optional)</span>
+        <Input
+          maxLength={300}
+          placeholder="Anything the crafter should know"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          className="w-full"
+        />
+      </label>
+      <div className="flex gap-2">
+        <Button type="submit" disabled={busy}>
+          Send request
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          disabled={busy}
+          onClick={() => {
+            setOpen(false)
+            setQuantity('1')
+            props.onQuantity(1)
+          }}
+        >
+          Never mind
+        </Button>
+      </div>
+      <p className="text-xs text-stone-500">
+        It is posted in the guild’s updates channel
+        {ask ? ', and the person you asked is notified.' : '.'}
+      </p>
+      <ErrorText error={error} />
+    </form>
   )
 }
 

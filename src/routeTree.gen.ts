@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BankRouteImport } from './routes/bank'
 import { Route as CraftingRouteImport } from './routes/crafting'
+import { Route as RequestsRouteImport } from './routes/requests'
 import { Route as RosterRouteImport } from './routes/roster'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SyncRouteImport } from './routes/sync'
@@ -36,6 +37,11 @@ const BankRoute = BankRouteImport.update({
 const CraftingRoute = CraftingRouteImport.update({
   id: '/crafting',
   path: '/crafting',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RequestsRoute = RequestsRouteImport.update({
+  id: '/requests',
+  path: '/requests',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RosterRoute = RosterRouteImport.update({
@@ -93,6 +99,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/bank': typeof BankRoute
   '/crafting': typeof CraftingRoute
+  '/requests': typeof RequestsRoute
   '/roster': typeof RosterRoute
   '/settings': typeof SettingsRoute
   '/sync': typeof SyncRoute
@@ -108,6 +115,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/bank': typeof BankRoute
   '/crafting': typeof CraftingRoute
+  '/requests': typeof RequestsRoute
   '/roster': typeof RosterRoute
   '/settings': typeof SettingsRoute
   '/sync': typeof SyncRoute
@@ -124,6 +132,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/bank': typeof BankRoute
   '/crafting': typeof CraftingRoute
+  '/requests': typeof RequestsRoute
   '/roster': typeof RosterRoute
   '/settings': typeof SettingsRoute
   '/sync': typeof SyncRoute
@@ -141,6 +150,7 @@ export interface FileRouteTypes {
     | '/'
     | '/bank'
     | '/crafting'
+    | '/requests'
     | '/roster'
     | '/settings'
     | '/sync'
@@ -156,6 +166,7 @@ export interface FileRouteTypes {
     | '/'
     | '/bank'
     | '/crafting'
+    | '/requests'
     | '/roster'
     | '/settings'
     | '/sync'
@@ -171,6 +182,7 @@ export interface FileRouteTypes {
     | '/'
     | '/bank'
     | '/crafting'
+    | '/requests'
     | '/roster'
     | '/settings'
     | '/sync'
@@ -187,6 +199,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BankRoute: typeof BankRoute
   CraftingRoute: typeof CraftingRoute
+  RequestsRoute: typeof RequestsRoute
   RosterRoute: typeof RosterRoute
   SettingsRoute: typeof SettingsRoute
   SyncRoute: typeof SyncRoute
@@ -220,6 +233,13 @@ declare module '@tanstack/react-router' {
       path: '/crafting'
       fullPath: '/crafting'
       preLoaderRoute: typeof CraftingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/requests': {
+      id: '/requests'
+      path: '/requests'
+      fullPath: '/requests'
+      preLoaderRoute: typeof RequestsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/roster': {
@@ -299,6 +319,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BankRoute: BankRoute,
   CraftingRoute: CraftingRoute,
+  RequestsRoute: RequestsRoute,
   RosterRoute: RosterRoute,
   SettingsRoute: SettingsRoute,
   SyncRoute: SyncRoute,

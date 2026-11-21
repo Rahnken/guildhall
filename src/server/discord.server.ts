@@ -105,17 +105,22 @@ export function isFromDiscord(
 }
 
 /** Posts to the updates channel. Does nothing when no webhook is set. */
-export async function postToChannel(content: string): Promise<void> {
+export async function postToChannel(
+  content: string,
+  /** Discord user ids that a <@id> in the text is allowed to notify. */
+  notify: Array<string> = [],
+): Promise<void> {
   const url = config.discord.webhookUrl
   if (!url) return
   try {
     await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      // No pings, whatever a character name or note happens to contain.
+      // No pings beyond the people named, whatever a character name or
+      // note happens to contain.
       body: JSON.stringify({
         content: content.slice(0, 1900),
-        allowed_mentions: { parse: [] },
+        allowed_mentions: { parse: [], users: notify },
       }),
     })
   } catch (error) {

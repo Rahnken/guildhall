@@ -4,6 +4,7 @@ import { prisma } from '#/db'
 import {
   describeRecipe,
   iconOf,
+  madeBy,
   recipeIcon,
   recipeBySpell,
   recipes,
@@ -138,6 +139,16 @@ export const getRecipe = createServerFn({ method: 'GET' })
     const viewer = requireMember()
     const recipe = recipeBySpell.get(data.spellId)
     if (!recipe) return null
+    // A material that is itself crafted is shown with what it is made from.
+    const from = new Map(
+      recipe.reagents.flatMap((reagent) => {
+        const made = madeBy(reagent.itemId)
+        // Not the recipe itself, for the few that take what they make.
+        return made && made.spellId !== recipe.spellId
+          ? [[reagent.itemId, made] as const]
+          : []
+      }),
+    )
     const [known, bank] = await Promise.all([
       prisma.knownRecipe.findMany({
         where: { spellId: recipe.spellId },
@@ -147,11 +158,31 @@ export const getRecipe = createServerFn({ method: 'GET' })
       }),
       prisma.bankItem.groupBy({
         by: ['itemId'],
-        where: { itemId: { in: recipe.reagents.map((x) => x.itemId) } },
+        where: {
+          itemId: {
+            in: [
+              ...recipe.reagents,
+              ...[...from.values()].flatMap((made) => made.reagents),
+            ].map((x) => x.itemId),
+          },
+        },
         _sum: { count: true },
       }),
     ])
     const inBank = new Map(bank.map((b) => [b.itemId, b._sum.count ?? 0]))
+    const sub = (made: typeof recipe | undefined) =>
+      made
+        ? {
+            spellId: made.spellId,
+            profession: made.profession,
+            makes: made.makes ?? 1,
+            reagents: made.reagents.map((raw) => ({
+              ...raw,
+              icon: iconOf('items', raw.itemId),
+              inBank: inBank.get(raw.itemId) ?? 0,
+            })),
+          }
+        : null
     return {
       ...recipe,
       ...describeRecipe(recipe),
@@ -160,6 +191,7 @@ export const getRecipe = createServerFn({ method: 'GET' })
         ...reagent,
         icon: iconOf('items', reagent.itemId),
         inBank: inBank.get(reagent.itemId) ?? 0,
+        from: sub(from.get(reagent.itemId)),
       })),
       crafters: known
         .map((k) => ({

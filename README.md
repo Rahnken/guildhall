@@ -28,6 +28,7 @@ Only one person with the addon is needed. Everyone else just uses the site or Di
 | `/roster`            | Members         | Say which characters are yours and which is your main; the rest show as its alts      |
 | `/crafting`          | Members         | Browse every recipe by profession: materials, what the bank has, who can make it      |
 | `/crafting`          | Members         | Upload your own addon file so the site knows your professions and recipes             |
+| `/requests`          | Members         | Ask for something to be made; crafters take requests and mark them done               |
 | `/bank`              | Members         | Guild bank by tab, with search, and the bank's gold                                   |
 | `/sync`              | Officers        | Upload the addon's saved file from the browser; recent upload history                 |
 | `/settings`          | Officers        | Edit the guild name, description and Discord invite shown on the public page          |
@@ -64,6 +65,12 @@ The Crafting page answers "who can make this?". It lists every recipe by profess
 3. `npm run icons:read` writes those to `src/data/icons.json`.
 4. Export the game's icon pictures once with [wow.export](https://github.com/Kruithne/wow.export): open the local installation, Textures tab, search `interface/icons`, select all, Export as PNG.
 5. `npm run icons:build` copies the pictures the recipe list needs into `public/icons`, shrunk to 56 pixels, and names any it could not find.
+
+## Requests
+
+A member asks for something to be made with "Request this" on a recipe: how many, which of their characters it goes to, whether they will send the materials, and optionally one crafter to ask. The Requests page lists what is waiting. Any member can take a request with "I'll make it", give it back, and mark it done; the requester can cancel, and officers can finish or cancel anyone's.
+
+Like claims, this runs on trust, and each step is posted to the updates channel. Those posts notify only the person concerned: the crafter who was asked, the requester when their request is taken, given back or done, and the crafter when a request they took is cancelled. A member can have 10 requests waiting at once, and finished ones stay listed for 14 days.
 
 ## Local setup
 
@@ -163,6 +170,7 @@ The deploy needs one repository secret, `FLY_API_TOKEN`: a deploy token for the 
 - `src/server/commands.server.ts` and `src/lib/commands.ts`: slash command answers and definitions.
 - `src/server/guild.functions.ts`: what the pages read and change, including character claims.
 - `src/lib/crafting.ts` and `src/server/crafting.server.ts`: the shape of a professions upload, matching it to the recipe list, and storing it.
+- `src/server/requests.functions.ts`: crafting requests and their channel posts.
 - `src/server/session.server.ts`: the signed sign-in cookie. There is no session table.
 - `src/routes`: file-based routes. `src/routeTree.gen.ts` is generated: don't edit it.
 

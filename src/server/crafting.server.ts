@@ -35,6 +35,23 @@ const game = fromGame as {
   spellText: Record<string, string | undefined>
 }
 
+const makers = new Map<number, Array<Recipe>>()
+for (const recipe of recipes)
+  if (recipe.itemId)
+    makers.set(recipe.itemId, [...(makers.get(recipe.itemId) ?? []), recipe])
+
+/**
+ * The recipe that makes an item, when a material is itself crafted (a Bolt
+ * of Silk Cloth from Silk Cloth). Null when nothing makes it, or when
+ * differently named recipes do (the transmutes), since none is "the" way.
+ */
+export function madeBy(itemId: number): Recipe | null {
+  const found = makers.get(itemId) ?? []
+  return found.length > 0 && found.every((r) => r.name === found[0].name)
+    ? found[0]
+    : null
+}
+
 /** Icons with a picture in public/icons (written by `npm run icons:build`). */
 const pictures = new Set<number>(iconFiles)
 

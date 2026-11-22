@@ -148,7 +148,7 @@ function RequestRow({
               {status.label}
             </span>
             {request.askedMe && request.status === 'open' && (
-              <span className="rounded bg-amber-500 px-1.5 text-xs font-medium text-stone-950">
+              <span className="rounded bg-amber-500 px-1.5 text-xs font-medium text-(--on-amber)">
                 Asked you
               </span>
             )}

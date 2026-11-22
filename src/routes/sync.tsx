@@ -69,7 +69,7 @@ function Sync() {
             if (file) void upload(file)
             e.target.value = ''
           }}
-          className="text-sm text-stone-300 file:mr-3 file:rounded file:border-0 file:bg-sky-500 file:px-3 file:py-1.5 file:font-medium file:text-stone-950"
+          className="text-sm text-stone-300 file:mr-3 file:rounded file:border-0 file:bg-sky-500 file:px-3 file:py-1.5 file:font-medium file:text-(--on-sky)"
         />
         {busy && <p className="mt-2 text-sm text-stone-400">Uploading…</p>}
         {results.map((line) => (

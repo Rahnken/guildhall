@@ -1,5 +1,16 @@
 @import 'tailwindcss';
 
+/*
+ * What a colour theme (src/lib/theme.ts) can change besides Tailwind's own
+ * colours: the text on amber and sky buttons, and the band across the top
+ * of the page, which only shows once a tabard background is chosen.
+ */
+:root {
+  --on-amber: #0c0a09;
+  --on-sky: #0c0a09;
+  --tabard-background: transparent;
+}
+
 * {
   box-sizing: border-box;
 }

@@ -1,7 +1,9 @@
 import { createServerFn } from '@tanstack/react-start'
 
 import { prisma } from '#/db'
+import { cleanColor } from '#/lib/theme'
 import { config } from './config.server'
+import { recipeBySpell, recipeIcon } from './crafting.server'
 import { postToChannel } from './discord.server'
 import { IngestRefused, ingest, summarize } from './ingest.server'
 import { getViewer, requireMember, requireOfficer } from './session.server'
@@ -14,6 +16,11 @@ export const getSite = createServerFn({ method: 'GET' }).handler(async () => {
     name: saved?.name ?? config.guildName,
     description: saved?.description ?? config.tagline,
     inviteUrl: saved?.inviteUrl ?? config.inviteUrl,
+    colors: {
+      background: saved?.colorBackground ?? '',
+      border: saved?.colorBorder ?? '',
+      emblem: saved?.colorEmblem ?? '',
+    },
     viewer: getViewer(),
   }
 })
@@ -36,7 +43,16 @@ export const saveSettings = createServerFn({ method: 'POST' })
       throw new Error(
         'The invite must be a Discord invite link, like https://discord.gg/abc123.',
       )
-    return { name, description, inviteUrl }
+    const colors = (input.colors ?? {}) as Record<string, unknown>
+    return {
+      name,
+      description,
+      inviteUrl,
+      // Anything that is not "#rrggbb" becomes "", the site's own colour.
+      colorBackground: cleanColor(colors.background),
+      colorBorder: cleanColor(colors.border),
+      colorEmblem: cleanColor(colors.emblem),
+    }
   })
   .handler(async ({ data }) => {
     requireOfficer()
@@ -50,13 +66,19 @@ export const saveSettings = createServerFn({ method: 'POST' })
 export const getOverview = createServerFn({ method: 'GET' }).handler(
   async () => {
     requireMember()
-    const [guild, characters, tabs] = await Promise.all([
+    const [guild, characters, tabs, waiting] = await Promise.all([
       prisma.guild.findUnique({ where: { id: 1 } }),
       prisma.character.findMany({
         select: { name: true, level: true, classToken: true, online: true },
         orderBy: [{ level: 'desc' }, { name: 'asc' }],
       }),
       prisma.bankTab.count(),
+      // Crafting requests nobody has taken yet, newest first.
+      prisma.craftRequest.findMany({
+        where: { status: 'open' },
+        orderBy: { createdAt: 'desc' },
+        include: { requester: true },
+      }),
     ])
     const byClass = new Map<string, number>()
     for (const c of characters)
@@ -64,12 +86,31 @@ export const getOverview = createServerFn({ method: 'GET' }).handler(
     return {
       realm: guild?.realm ?? null,
       rosterAt: guild?.rosterAt ?? null,
+      /** The server's clock, so "12 min ago" reads the same on both sides. */
+      now: Date.now(),
       members: characters.length,
+      /** Who was online when the roster was saved, highest level first. */
+      online: characters.filter((c) => c.online),
       classes: [...byClass]
         .map(([classToken, count]) => ({ classToken, count }))
         .sort((a, b) => b.count - a.count),
       top: characters.slice(0, 10),
       bankTabs: tabs,
+      openRequests: waiting.length,
+      /** The newest few, for the home page. */
+      requests: waiting.slice(0, 8).flatMap((request) => {
+        const recipe = recipeBySpell.get(request.spellId)
+        return recipe
+          ? {
+              id: request.id,
+              name: recipe.name,
+              profession: recipe.profession,
+              icon: recipeIcon(recipe),
+              quantity: request.quantity,
+              requester: request.requester.name,
+            }
+          : []
+      }),
     }
   },
 )

@@ -59,6 +59,8 @@ function GetCraftDisplaySkillLine() if craftLine then return craftLine, 30, 75 e
 function GetNumCrafts() return 1 end
 function GetCraftInfo(i) return "Runed Copper Rod", "", "optimal" end
 SlashCmdList = {}
+-- Tabard: black background, white border, a red emblem.
+function GetGuildLogoInfo() return 0, 0, 0, 1, 1, 1, 0.8, 0.1, 0.1, "emblem" end
 -- What RecipeIds.lua would have loaded; the client knows two of the three.
 ADDON_TABLE = { ITEMS = {4238, 11}, SPELLS = {7421}, MADE = {4238, 12} }
 C_Item = { GetItemIconByID = function(id) if id == 4238 then return 133639 end end }
@@ -163,6 +165,15 @@ assert(icons.items[4238] == 133639 and icons.items[11] == nil and icons.spells[7
 assert(icons.tips[4238][1] == "Linen Bag" and icons.tips[4238][3] == "Bag	Cloth" and #icons.tips[4238] == 3, "tooltip saved without colour codes")
 assert(icons.quality[4238] == 1 and icons.spellText[7421] == "Teaches you to enchant." and icons.tips[12] == nil)
 SlashCmdList["GUILDHALL"]("icons"); assert(icons.tips[12] ~= nil, "a second run fills in what was loading")
+assert(g.tabard.background == "#000000" and g.tabard.border == "#ffffff" and g.tabard.emblem == "#cc1a1a", "tabard colours saved by /gh status")
+-- The Forever client gives the channels as 0 to 255.
+function GetGuildLogoInfo() return 252, 104, 145, 99, 179, 0, 55, 103, 0, "Emblem_101_15_TU_U", 101 end
+function GetGuildTabardFiles() return 1, 2, 180499, 180498, 5, 6 end
+C_GuildInfo = { GetGuildTabardInfo = function() return { emblemStyle = 101, emblemFileID = 180499, backgroundColor = {} } end }
+SlashCmdList["GUILDHALL"]("status")
+assert(g.tabard.background == "#fc6891" and g.tabard.border == "#63b300" and g.tabard.emblem == "#376700", "tabard colours given as 0 to 255")
+assert(g.tabard.emblemFile == "Emblem_101_15_TU_U" and g.tabard.emblemIndex == 101 and g.tabard.files[3] == 180499, "which emblem it is")
+assert(g.tabard.info.emblemStyle == 101 and g.tabard.info.backgroundColor == nil, "newer tabard description, plain values only")
 local reloads = 0; function ReloadUI() reloads = reloads + 1 end
 SlashCmdList["GUILDHALL"]("sync"); assert(reloads == 1, "/gh sync reloads the interface")
 assert(GuildhallDB.characters["Rahn Ken - "] == nil and GuildhallDB.guilds["Test Guild - "] == nil, "blank realm made no new records")

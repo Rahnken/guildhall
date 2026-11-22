@@ -102,6 +102,8 @@ After any change to `prisma/schema.prisma`, run `npm run db:migrate -- --name <c
 - **Guild bank**: each tab, as you click on it. The game only knows a tab's contents once you have opened it.
 - **Professions**: the levels of the character you are playing, at login, and the recipes of each profession window you open.
 
+**Giving it to members.** The site serves the addon as `/Guildhall.zip`, packed from `addon/Guildhall` on every build (`scripts/zip-addon.mjs`), and the Crafting page links to it with install steps. Members unzip it into `Interface/AddOns` and restart the game. A new version reaches them when they download it again, so tell them when one matters.
+
 Officer notes are never recorded. `/gh status` shows what is saved and `/gh scan` saves the roster immediately.
 
 Install it with `npm run addon:install`, or copy the `addon/Guildhall` folder into the game's `Interface/AddOns`. Set `WOW_FOREVER_DIR` in `.env.local` if the game is not in the default location.

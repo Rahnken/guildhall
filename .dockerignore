@@ -7,4 +7,3 @@ node_modules
 *.db
 *.db-*
 src/generated
-addon

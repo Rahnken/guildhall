@@ -843,6 +843,22 @@ function Mine({ mine }: { mine: Awaited<ReturnType<typeof getMyRecipes>> }) {
       </p>
       <ol className="mb-4 list-decimal space-y-1 pl-5 text-sm text-stone-300">
         <li>
+          <a
+            href="/Guildhall.zip"
+            download
+            className="font-medium text-sky-300 hover:underline"
+          >
+            Download the addon
+          </a>{' '}
+          and unzip it into{' '}
+          <code className="text-sky-300">
+            World of Warcraft/_forever_/Interface/AddOns
+          </code>
+          , so that folder has a <code className="text-sky-300">Guildhall</code>{' '}
+          folder in it. Then restart the game. You only do this once, and again
+          when an officer says there is a new version.
+        </li>
+        <li>
           In game, with the addon on, open each profession window once on each
           character.
         </li>

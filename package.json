@@ -17,6 +17,7 @@
     "addon:install": "dotenv -e .env.local -- node scripts/install-addon.mjs",
     "sync": "dotenv -e .env.local -- tsx scripts/sync.ts",
     "icons:ids": "tsx scripts/icons.ts ids",
+    "emblem:build": "dotenv -e .env.local -- tsx scripts/emblem.ts",
     "icons:build": "dotenv -e .env.local -- tsx scripts/icons.ts build",
     "icons:read": "dotenv -e .env.local -- tsx scripts/icons.ts read",
     "sync:watch": "dotenv -e .env.local -- tsx scripts/sync.ts --watch",

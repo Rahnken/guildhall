@@ -56,7 +56,7 @@ export function Button({
       className={cx(
         'rounded px-3 py-1.5 text-sm font-medium disabled:opacity-50',
         variant === 'primary' &&
-          'bg-amber-500 text-stone-950 hover:bg-amber-400',
+          'bg-amber-500 text-(--on-amber) hover:bg-amber-400',
         variant === 'ghost' &&
           'border border-stone-700 text-stone-200 hover:bg-stone-800',
         variant === 'danger' && 'text-red-400 hover:bg-red-950',

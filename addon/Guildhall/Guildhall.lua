@@ -521,11 +521,68 @@ end
 -- Events and commands
 ---------------------------------------------------------------------------
 
+-- The guild tabard's colours as "#rrggbb", for the website's colour scheme.
+local function tabardColors()
+    if type(GetGuildLogoInfo) ~= "function" then return nil end
+    local logo = {pcall(GetGuildLogoInfo)}
+    local ok, bR, bG, bB, eR, eG, eB, mR, mG, mB =
+        (unpack or table.unpack)(logo, 1, 10)
+    if not ok or type(bR) ~= "number" or type(mB) ~= "number" then return nil end
+    -- Some clients give each channel as 0 to 1, this one as 0 to 255.
+    local scale = 255
+    for _, v in ipairs({bR, bG, bB, eR, eG, eB, mR, mG, mB}) do
+        if v > 1 then scale = 1 end
+    end
+    local function channel(v)
+        return math.max(0, math.min(255, math.floor(v * scale + 0.5)))
+    end
+    local function hex(r, g, b)
+        return string.format("#%02x%02x%02x", channel(r), channel(g),
+                             channel(b))
+    end
+    local tabard = {
+        background = hex(bR, bG, bB),
+        border = hex(eR, eG, eB),
+        emblem = hex(mR, mG, mB)
+    }
+    -- Which picture the emblem is, however this client says it, so the
+    -- website can show the same one: the values after the colours, the
+    -- tabard's texture files, and the newer tabard description.
+    local function plain(v)
+        return (type(v) == "number" or type(v) == "string") and v or nil
+    end
+    tabard.emblemFile, tabard.emblemIndex = plain(logo[11]), plain(logo[12])
+    if type(GetGuildTabardFiles) == "function" then
+        local files = {pcall(GetGuildTabardFiles)}
+        if files[1] then
+            tabard.files = {}
+            for i = 2, 7 do tabard.files[i - 1] = plain(files[i]) or false end
+        end
+    end
+    local info = C_GuildInfo and C_GuildInfo.GetGuildTabardInfo
+    if type(info) == "function" then
+        local okInfo, details = pcall(info, "player")
+        if okInfo and type(details) == "table" then
+            tabard.info = {}
+            for key, value in pairs(details) do
+                tabard.info[key] = plain(value)
+            end
+        end
+    end
+    return tabard
+end
+
 local function status()
     local guild = guildRecord()
     if not guild then
         say("this character is not in a guild.")
         return
+    end
+    local tabard = tabardColors()
+    if tabard then
+        guild.tabard = tabard
+        say("tabard colours: background " .. tabard.background .. ", border " ..
+                tabard.border .. ", emblem " .. tabard.emblem .. ".")
     end
     say(guild.name .. ": roster saved " .. ago(guild.rosterAt) ..
             (guild.total and (" (" .. guild.total .. " members)") or "") .. ".")

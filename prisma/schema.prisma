@@ -141,4 +141,9 @@ model SiteSettings {
   name        String
   description String @default("")
   inviteUrl   String @default("")
+  /// The guild tabard's colours as "#rrggbb"; the site's colour scheme is
+  /// made from them. Empty keeps the site's own colours.
+  colorBackground String @default("")
+  colorBorder     String @default("")
+  colorEmblem     String @default("")
 }

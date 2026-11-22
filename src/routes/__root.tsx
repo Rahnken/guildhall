@@ -7,6 +7,8 @@ import {
 } from '@tanstack/react-router'
 import type { ReactNode } from 'react'
 
+import emblem from '../data/emblem.json'
+import { themeCss } from '../lib/theme'
 import { getSite } from '../server/guild.functions'
 import appCss from '../styles.css?url'
 
@@ -38,14 +40,15 @@ function RootComponent() {
   const viewer = site.viewer
 
   return (
-    <RootDocument>
-      <header className="border-b border-stone-800 bg-stone-950/80">
+    <RootDocument theme={themeCss(site.colors)}>
+      <header className="border-b border-t-4 border-stone-800 border-t-(--tabard-background) bg-stone-950/80">
         <nav className="mx-auto flex max-w-6xl flex-wrap items-center gap-1 px-4 py-3">
           <Link
             to="/"
             className="mr-4 flex items-center gap-2 font-semibold tracking-wide text-sky-300"
           >
-            <img src="/logo.svg" alt="" className="size-7" />
+            {/* The guild tabard's emblem once `npm run emblem:build` has made one. */}
+            <img src={emblem.file || '/logo.svg'} alt="" className="size-7" />
             {site.name}
           </Link>
           {viewer && (
@@ -101,13 +104,23 @@ function RootComponent() {
   )
 }
 
-function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
+function RootDocument({
+  children,
+  theme,
+}: Readonly<{
+  children: ReactNode
+  /** Replaces the site's colours with the guild tabard's; "" for none. */
+  theme: string
+}>) {
   return (
     <html lang="en">
       <head>
         <HeadContent />
       </head>
       <body className="min-h-screen bg-stone-900 text-stone-100 antialiased">
+        {/* In the body so it comes after the stylesheet it overrides. Only
+            ever "#rrggbb" values the server has checked. */}
+        {theme && <style dangerouslySetInnerHTML={{ __html: theme }} />}
         {children}
         <Scripts />
       </body>

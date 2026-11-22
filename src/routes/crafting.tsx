@@ -257,7 +257,7 @@ function RecipeList(props: {
           No recipe matches.
         </p>
       ) : (
-        <ul className="lg:max-h-[34rem] lg:overflow-y-auto lg:pr-1 [scrollbar-color:#57534e_transparent]">
+        <ul className="lg:max-h-[34rem] lg:overflow-y-auto lg:pr-1 [scrollbar-color:var(--color-stone-600)_transparent]">
           {rows.slice(0, MAX_ROWS).map((r) => (
             <li key={r.spellId}>
               <button
@@ -868,7 +868,7 @@ function Mine({ mine }: { mine: Awaited<ReturnType<typeof getMyRecipes>> }) {
           if (file) void upload(file)
           e.target.value = ''
         }}
-        className="text-sm text-stone-300 file:mr-3 file:rounded file:border-0 file:bg-sky-500 file:px-3 file:py-1.5 file:font-medium file:text-stone-950"
+        className="text-sm text-stone-300 file:mr-3 file:rounded file:border-0 file:bg-sky-500 file:px-3 file:py-1.5 file:font-medium file:text-(--on-sky)"
       />
       {busy && <p className="mt-2 text-sm text-stone-400">Uploading…</p>}
       {lines.map((line) => (

@@ -72,6 +72,12 @@ A member asks for something to be made with "Request this" on a recipe: how many
 
 Like claims, this runs on trust, and each step is posted to the updates channel. Those posts notify only the person concerned: the crafter who was asked, the requester when their request is taken, given back or done, and the crafter when a request they took is cancelled. A member can have 10 requests waiting at once, and finished ones stay listed for 14 days.
 
+## Colours
+
+Officers can set the site's colour scheme on the Settings page from the three colours of the guild tabard: the background tints the page and panels, the emblem colours buttons and selection, and the border colours links. `/gh status` in game prints the tabard's colours to copy in. Buttons and the band across the top of the page use the colours exactly as picked. Every other shade is the tabard colour mixed with white or black (CSS `color-mix`) until it is as light as the page was designed to be there, so text remains readable. `src/lib/theme.ts` does the conversion.
+
+The logo in the header can be the tabard's emblem too. After `/gh status` and `/reload` in game, `npm run emblem:build` makes `public/emblem.webp` from the emblem picture exported with wow.export; it names the search to export if the picture is missing. Without it the header shows `public/logo.svg`.
+
 ## Local setup
 
 Needs Node 22 or newer.

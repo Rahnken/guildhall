@@ -14,6 +14,7 @@
     "db:migrate": "dotenv -e .env.local -- prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:studio": "dotenv -e .env.local -- prisma studio",
+    "addon:icon": "tsx scripts/addon-icon.ts",
     "addon:install": "dotenv -e .env.local -- node scripts/install-addon.mjs",
     "sync": "dotenv -e .env.local -- tsx scripts/sync.ts",
     "icons:ids": "tsx scripts/icons.ts ids",

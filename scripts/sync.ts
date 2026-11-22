@@ -1,25 +1,19 @@
-// Sends the Guildhall addon's saved data to the website.
+// Sends the companion addon's saved data to the website.
 //
 //   npm run sync               upload once
 //   npm run sync -- --watch    stay running; upload whenever the game saves
 //   npm run sync -- --dry      show what would be uploaded, send nothing
-//   npm run sync -- --file <path to Guildhall.lua>
+//   npm run sync -- --file <path to MankriksFluffers.lua>
 //
 // Reads SITE_URL, INGEST_TOKEN, WOW_FOREVER_DIR and WOW_ACCOUNT from .env.local.
-import {
-  existsSync,
-  readFileSync,
-  readdirSync,
-  statSync,
-  watchFile,
-} from 'node:fs'
-import { join } from 'node:path'
+import { readFileSync, watchFile } from 'node:fs'
 
 import {
   craftingFromSavedVariables,
   describeCrafting,
 } from '../src/lib/crafting'
 import { describe, snapshotsFromSavedVariables } from '../src/lib/snapshot'
+import { locateSaved } from './saved-file'
 
 const args = process.argv.slice(2)
 const flag = (name: string) => args.includes(`--${name}`)
@@ -30,31 +24,8 @@ const siteUrl = (
 ).replace(/\/$/, '')
 const token = process.env.INGEST_TOKEN?.trim() ?? ''
 
-/** The addon's SavedVariables file, from the most recently played account. */
-function locate(): string {
-  if (fileArg) return fileArg
-  const wowDir =
-    process.env.WOW_FOREVER_DIR?.trim() ||
-    'C:/Program Files (x86)/World of Warcraft/_forever_'
-  const accounts = join(wowDir, 'WTF', 'Account')
-  if (!existsSync(accounts))
-    throw new Error(
-      `No WTF/Account folder in ${wowDir}. Set WOW_FOREVER_DIR in .env.local to your _forever_ folder.`,
-    )
-  const wanted = process.env.WOW_ACCOUNT?.trim()
-  const files = readdirSync(accounts)
-    .filter((account) => !wanted || account === wanted)
-    .map((account) =>
-      join(accounts, account, 'SavedVariables', 'Guildhall.lua'),
-    )
-    .filter((file) => existsSync(file))
-    .sort((a, b) => statSync(b).mtimeMs - statSync(a).mtimeMs)
-  if (files.length === 0)
-    throw new Error(
-      `No Guildhall.lua under ${accounts}. Install the addon (npm run addon:install), log in, then /reload.`,
-    )
-  return files[0]
-}
+/** The file to read: the one named on the command line, or the game's. */
+const locate = (): string => fileArg || locateSaved()
 
 /** Sends the professions of the characters played on this account. */
 async function uploadCrafting(source: string): Promise<void> {

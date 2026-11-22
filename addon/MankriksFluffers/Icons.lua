@@ -1,10 +1,10 @@
--- Guildhall icons: saves what the game shows for every item and spell in the
+-- Mankrik's Fluffers Guildhall, icons: saves what the game shows for every item and spell in the
 -- website's recipe list (RecipeIds.lua), so the site can show the same thing:
 -- the icon of each, and for the things recipes make, the tooltip (stats,
 -- "Use:" text) and the quality. Only the person maintaining the site needs
 -- this, with /gh icons; nothing here runs on its own.
 --
--- Writes GuildhallDB.icons:
+-- Writes MankriksFluffersDB.icons:
 --   items[itemId], spells[spellId]   icon: a file id, or a path in old clients
 --   quality[itemId]                  0 poor .. 4 epic
 --   tips[itemId]                     tooltip lines; "left\tright" when a line
@@ -26,7 +26,7 @@ local function scannedLines(id)
     if not CreateFrame or not UIParent then return nil end
     if not scanner then
         local ok, frame = pcall(CreateFrame, "GameTooltip",
-                                "GuildhallScanTooltip", UIParent,
+                                "MankriksFluffersScanTooltip", UIParent,
                                 "GameTooltipTemplate")
         if not ok or not frame then return nil end
         scanner = frame
@@ -35,8 +35,8 @@ local function scannedLines(id)
     if not pcall(scanner.SetHyperlink, scanner, "item:" .. id) then return nil end
     local lines = {}
     for i = 1, scanner:NumLines() or 0 do
-        local left = _G["GuildhallScanTooltipTextLeft" .. i]
-        local right = _G["GuildhallScanTooltipTextRight" .. i]
+        local left = _G["MankriksFluffersScanTooltipTextLeft" .. i]
+        local right = _G["MankriksFluffersScanTooltipTextRight" .. i]
         lines[#lines + 1] = {
             leftText = left and left:GetText(),
             rightText = right and right:IsShown() and right:GetText() or nil
@@ -75,13 +75,13 @@ end
 -- Returns how many icons are saved, how many ids the client does not know,
 -- and how many tooltips it is still fetching (run it again for those).
 function shared.saveIcons()
-    GuildhallDB = GuildhallDB or {}
+    MankriksFluffersDB = MankriksFluffersDB or {}
     -- Kept between runs, so a second run only has to fill the gaps.
-    local saved = GuildhallDB.icons or {}
+    local saved = MankriksFluffersDB.icons or {}
     saved.items, saved.spells = saved.items or {}, saved.spells or {}
     saved.quality, saved.tips = saved.quality or {}, saved.tips or {}
     saved.spellText = saved.spellText or {}
-    GuildhallDB.icons = saved
+    MankriksFluffersDB.icons = saved
 
     local found, missing, waiting = 0, 0, 0
     local function icon(into, id, first, second)

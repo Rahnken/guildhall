@@ -1,15 +1,16 @@
-// Packs addon/Guildhall into public/Guildhall.zip, which the Crafting page
-// links to so members can install the addon. Runs before every dev start
+// Packs addon/MankriksFluffers into public/MankriksFluffers.zip, which the
+// Crafting page links to so members can install the addon. Runs before every dev start
 // and build, so the download is always the addon as it is in the repo.
 //
-// The zip holds one folder, Guildhall, to drop into Interface/AddOns.
+// The zip holds one folder, MankriksFluffers, to drop into Interface/AddOns.
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { crc32, deflateRawSync } from 'node:zlib'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
-const source = join(root, 'addon', 'Guildhall')
+const FOLDER = 'MankriksFluffers'
+const source = join(root, 'addon', FOLDER)
 
 // A fixed date in every entry, so the same addon always makes the same file.
 const DOS_TIME = 0
@@ -19,7 +20,7 @@ const locals = []
 const central = []
 let offset = 0
 for (const file of readdirSync(source).sort()) {
-  const name = Buffer.from(`Guildhall/${file}`)
+  const name = Buffer.from(`${FOLDER}/${file}`)
   const data = readFileSync(join(source, file))
   const packed = deflateRawSync(data, { level: 9 })
   const sum = crc32(data)
@@ -67,7 +68,7 @@ end.writeUInt32LE(offset, 16)
 
 mkdirSync(join(root, 'public'), { recursive: true })
 writeFileSync(
-  join(root, 'public', 'Guildhall.zip'),
+  join(root, 'public', `${FOLDER}.zip`),
   Buffer.concat([...locals, index, end]),
 )
-console.log(`Packed ${central.length} addon files into public/Guildhall.zip`)
+console.log(`Packed ${central.length} addon files into public/${FOLDER}.zip`)

@@ -1,10 +1,10 @@
--- Guildhall: records guild data for the guild's website.
+-- Mankrik's Fluffers Guildhall: records guild data for the guild's website.
 --
 -- Writes to SavedVariables, one record per guild this account is in:
---   GuildhallDB.guilds["Guild - Realm"].roster   every member, online or not
---   GuildhallDB.guilds["Guild - Realm"].bank     each bank tab you have opened
+--   MankriksFluffersDB.guilds["Guild - Realm"].roster   every member, online or not
+--   MankriksFluffersDB.guilds["Guild - Realm"].bank     each bank tab you have opened
 -- and one record per character you play:
---   GuildhallDB.characters["Name - Realm"].professions   levels and recipes
+--   MankriksFluffersDB.characters["Name - Realm"].professions   levels and recipes
 -- The game only writes SavedVariables on logout or /reload. After that the
 -- website's sync script (or its upload page) reads the file.
 --
@@ -15,7 +15,7 @@
 -- saveIcons in it.
 local _, shared = ...
 
-local PREFIX = "|cff7dd3fcGuildhall|r: "
+local PREFIX = "|cff7dd3fcFluffers|r: "
 -- The roster event fires constantly in a busy guild; one capture every few
 -- minutes is plenty.
 local SCAN_EVERY = 300
@@ -618,9 +618,9 @@ for _, event in ipairs({
 
 frame:SetScript("OnEvent", function(_, event, arg1)
     if event == "ADDON_LOADED" then
-        if arg1 ~= "Guildhall" then return end
-        GuildhallDB = GuildhallDB or {}
-        db = GuildhallDB
+        if arg1 ~= "MankriksFluffers" then return end
+        MankriksFluffersDB = MankriksFluffersDB or {}
+        db = MankriksFluffersDB
         db.version = 1
         db.guilds = db.guilds or {}
         db.characters = db.characters or {}
@@ -642,9 +642,9 @@ frame:SetScript("OnEvent", function(_, event, arg1)
     end
 end)
 
-SLASH_GUILDHALL1 = "/guildhall"
-SLASH_GUILDHALL2 = "/gh"
-SlashCmdList["GUILDHALL"] = function(msg)
+SLASH_MANKRIKSFLUFFERS1 = "/gh"
+SLASH_MANKRIKSFLUFFERS2 = "/fluffers"
+SlashCmdList["MANKRIKSFLUFFERS"] = function(msg)
     local command = (msg or ""):lower():match("^%s*(%S*)")
     if command == "scan" then
         lastScan = 0

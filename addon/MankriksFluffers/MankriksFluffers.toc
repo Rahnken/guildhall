@@ -1,0 +1,12 @@
+## Interface: 16001
+## Title: |cff7dd3fcMankrik's Fluffers Guildhall|r
+## Notes: Records the guild roster, guild bank and your professions for the Mankrik's Fluffers guild website. Nothing is sent anywhere by the addon itself.
+## Author: Rahnken
+## Version: 0.3.0
+## X-License: GPL-3.0-or-later
+## X-Website: https://github.com/Rahnken/guildhall
+## SavedVariables: MankriksFluffersDB
+
+MankriksFluffers.lua
+RecipeIds.lua
+Icons.lua

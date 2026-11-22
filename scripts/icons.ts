@@ -1,6 +1,6 @@
 // Finds out which icon every recipe and material uses, by asking the game.
 //
-//   npm run icons:ids     write addon/Guildhall/RecipeIds.lua: every item and
+//   npm run icons:ids     write addon/MankriksFluffers/RecipeIds.lua: every item and
 //                         spell in the recipe list (run after recipes:import)
 //   npm run addon:install
 //   (in game)             /reload, type /gh icons, then /reload again
@@ -12,26 +12,17 @@
 // game names an icon by a file id; wow.export's file list says which exported
 // picture that is.
 // Reads WOW_FOREVER_DIR, WOW_ACCOUNT and WOW_EXPORT_DIR from .env.local.
-import {
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  readdirSync,
-  statSync,
-  writeFileSync,
-} from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 
 import sharp from 'sharp'
 
 import catalogue from '../src/data/recipes.json'
-import { parseSavedVariables } from '../src/lib/wow/luaTable'
+import { ADDON_FOLDER, savedData } from '../src/lib/wow/addon'
+import { locateSaved } from './saved-file'
 
 const root = join(import.meta.dirname, '..')
-const wowDir =
-  process.env.WOW_FOREVER_DIR?.trim() ||
-  'C:/Program Files (x86)/World of Warcraft/_forever_'
 
 // A recipe is drawn with the icon of the item it makes, or of its spell
 // when it makes none (enchantments); materials are items.
@@ -57,7 +48,7 @@ function luaList(ids: Set<number>): string {
 }
 
 function writeIds() {
-  const file = join(root, 'addon', 'Guildhall', 'RecipeIds.lua')
+  const file = join(root, 'addon', ADDON_FOLDER, 'RecipeIds.lua')
   writeFileSync(
     file,
     `-- Written by \`npm run icons:ids\`; do not edit. The items and spells in the
@@ -80,19 +71,9 @@ shared.MADE = ${luaList(made)}
 }
 
 function readSaved() {
-  const accounts = join(wowDir, 'WTF', 'Account')
-  const wanted = process.env.WOW_ACCOUNT?.trim()
-  const file = (existsSync(accounts) ? readdirSync(accounts) : [])
-    .filter((account) => !wanted || account === wanted)
-    .map((account) =>
-      join(accounts, account, 'SavedVariables', 'Guildhall.lua'),
-    )
-    .filter((path) => existsSync(path))
-    .sort((a, b) => statSync(b).mtimeMs - statSync(a).mtimeMs)[0]
-  if (!file) throw new Error(`No Guildhall.lua under ${accounts}.`)
-  const db = parseSavedVariables(readFileSync(file, 'utf8')).GuildhallDB as
+  const file = locateSaved()
+  const saved = savedData(readFileSync(file, 'utf8')).icons as
     Record<string, unknown> | undefined
-  const saved = db?.icons as Record<string, unknown> | undefined
   if (!saved)
     throw new Error(
       `No icons in ${file}. In game: /gh icons, then /reload, then run this again.`,

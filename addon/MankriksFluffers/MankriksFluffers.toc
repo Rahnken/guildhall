@@ -4,6 +4,7 @@
 ## Author: Rahnken
 ## Version: 0.3.0
 ## X-License: GPL-3.0-or-later
+## IconTexture: Interface\AddOns\MankriksFluffers\icon
 ## X-Website: https://github.com/Rahnken/guildhall
 ## SavedVariables: MankriksFluffersDB
 

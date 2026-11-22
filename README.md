@@ -25,6 +25,10 @@ Only one person with the addon is needed. Everyone else just uses the site or Di
 | `/`                  | Anyone          | Public page: guild name, tagline, "Request to join" (your Discord invite) and sign in |
 | `/` (signed in)      | Members         | Member count, classes, highest levels                                                 |
 | `/roster`            | Members         | Every character: level, class, rank, zone, last seen, public note. Search and sort    |
+| `/roster`            | Members         | Say which characters are yours and which is your main; the rest show as its alts      |
+| `/crafting`          | Members         | Browse every recipe by profession: materials, what the bank has, who can make it      |
+| `/crafting`          | Members         | Upload your own addon file so the site knows your professions and recipes             |
+| `/requests`          | Members         | Ask for something to be made; crafters take requests and mark them done               |
 | `/bank`              | Members         | Guild bank by tab, with search, and the bank's gold                                   |
 | `/sync`              | Officers        | Upload the addon's saved file from the browser; recent upload history                 |
 | `/settings`          | Officers        | Edit the guild name, description and Discord invite shown on the public page          |
@@ -34,6 +38,39 @@ Only one person with the addon is needed. Everyone else just uses the site or Di
 | Channel posts        | Updates channel | Who joined, who left, and who passed a multiple of 10 levels, after each upload       |
 
 Slash command replies are only visible to the person who asked. Change `EPHEMERAL` in `src/routes/api/discord/interactions.ts` to make them public.
+
+## Claiming characters
+
+On the roster, a member clicks "This is mine" on each of their characters. The first becomes their main and the others show as "alt of" it; "Make main" changes which. `/who` in Discord says who plays a character.
+
+Nothing can prove who owns a character, so claims are taken on trust: each one is posted to the updates channel, the member can undo it with "Not mine", and officers see "Remove claim" on everyone's. A claim lasts as long as the character is in the guild.
+
+## Crafting
+
+The Crafting page answers "who can make this?". It lists every recipe by profession, and for each one shows what the item does, the materials, how many of them are in the guild bank, and the guild characters who know it. The address holds the profession and the open recipe (`/crafting?p=Tailoring&r=3755`), so a recipe can be linked to.
+
+**Where the recipes come from.** `src/data/recipes.json` is built by `npm run recipes:import` from the profession data that ships with the [OneForAll](https://www.curseforge.com/wow/addons/oneforall) addon (GPL-3.0-or-later, by Smoergi), which extracted it from the WoW Forever client database. OneForAll must be installed in the game folder to run the import. Rerun it after a game patch, once OneForAll has updated.
+
+**Where "who knows it" comes from.** The Guildhall addon saves each character's professions when they log in, and the recipes of a profession when its window is opened. Any member can then upload their own `Guildhall.lua` on the Crafting page; `npm run sync` sends it too. Rules:
+
+- Only characters on the guild roster are stored.
+- A member's upload claims the characters in it that nobody has claimed, and skips characters someone else has claimed.
+- Recipes are only ever added to by the addon, because a search or filter in the profession window hides part of the list. Dropping a profession removes it.
+- The upload reports recipes the site's list does not have. A lot of those means `recipes.json` is out of date.
+
+**Where the icons and item descriptions come from.** The game itself. This only needs redoing after a game patch or a recipe re-import:
+
+1. `npm run icons:ids` writes the list of items and spells to look up into the addon (`RecipeIds.lua`); then `npm run addon:install`.
+2. In game, `/gh icons` saves each one's icon number, and the tooltip and quality of every item a recipe makes. Repeat it until it says every tooltip is saved, then `/reload`.
+3. `npm run icons:read` writes those to `src/data/icons.json`.
+4. Export the game's icon pictures once with [wow.export](https://github.com/Kruithne/wow.export): open the local installation, Textures tab, search `interface/icons`, select all, Export as PNG.
+5. `npm run icons:build` copies the pictures the recipe list needs into `public/icons`, shrunk to 56 pixels, and names any it could not find.
+
+## Requests
+
+A member asks for something to be made with "Request this" on a recipe: how many, which of their characters it goes to, whether they will send the materials, and optionally one crafter to ask. The Requests page lists what is waiting. Any member can take a request with "I'll make it", give it back, and mark it done; the requester can cancel, and officers can finish or cancel anyone's.
+
+Like claims, this runs on trust, and each step is posted to the updates channel. Those posts notify only the person concerned: the crafter who was asked, the requester when their request is taken, given back or done, and the crafter when a request they took is cancelled. A member can have 10 requests waiting at once, and finished ones stay listed for 14 days.
 
 ## Local setup
 
@@ -57,12 +94,13 @@ After any change to `prisma/schema.prisma`, run `npm run db:migrate -- --name <c
 
 - **Roster**: every member, online or not. It saves at most once every five minutes. If "show offline members" is off, it switches it on for a moment to read the full list and then puts it back.
 - **Guild bank**: each tab, as you click on it. The game only knows a tab's contents once you have opened it.
+- **Professions**: the levels of the character you are playing, at login, and the recipes of each profession window you open.
 
 Officer notes are never recorded. `/gh status` shows what is saved and `/gh scan` saves the roster immediately.
 
 Install it with `npm run addon:install`, or copy the `addon/Guildhall` folder into the game's `Interface/AddOns`. Set `WOW_FOREVER_DIR` in `.env.local` if the game is not in the default location.
 
-The addon has been confirmed working in the Forever client.
+The roster and bank capture have been confirmed working in the Forever client. The profession capture has only been run against the fake client in `tests/addon.test.lua`.
 
 ## Uploading
 
@@ -70,7 +108,7 @@ The game writes the addon's file on logout or `/reload`. Then either:
 
 - **Sync script**, for whoever has this repository:
   - `npm run sync` uploads once.
-  - `npm run sync -- --watch` stays running and uploads every time the game saves.
+  - `npm run sync:watch` stays running and uploads every time the game saves. With it running, `/gh sync` in game (which reloads the interface) is all it takes to update the site.
   - `npm run sync -- --dry` shows what would be sent.
   - It needs `SITE_URL` and `INGEST_TOKEN` in `.env.local`. The token must be one of the site's `INGEST_TOKENS`.
 - **Upload page**, for any officer: sign in, open `/sync`, and choose `WTF/Account/<account>/SavedVariables/Guildhall.lua`.
@@ -130,5 +168,14 @@ The deploy needs one repository secret, `FLY_API_TOKEN`: a deploy token for the 
 - `src/server/ingest.server.ts`: stores an upload and works out who joined, left and levelled.
 - `src/server/discord.server.ts`: sign-in, slash command signature check, channel posts.
 - `src/server/commands.server.ts` and `src/lib/commands.ts`: slash command answers and definitions.
+- `src/server/guild.functions.ts`: what the pages read and change, including character claims.
+- `src/lib/crafting.ts` and `src/server/crafting.server.ts`: the shape of a professions upload, matching it to the recipe list, and storing it.
+- `src/server/requests.functions.ts`: crafting requests and their channel posts.
 - `src/server/session.server.ts`: the signed sign-in cookie. There is no session table.
 - `src/routes`: file-based routes. `src/routeTree.gen.ts` is generated: don't edit it.
+
+## Licence
+
+Guildhall is free software under the GNU General Public License, version 3 or later; see `LICENSE`. The recipe list in `src/data/recipes.json` is derived from the OneForAll addon by Smoergi, which is under the same licence.
+
+The icons in `public/icons` and the item text in `src/data/icons.json` are taken from the World of Warcraft game client. They belong to Blizzard Entertainment and are not covered by the licence above.

@@ -11,9 +11,12 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BankRouteImport } from './routes/bank'
+import { Route as CraftingRouteImport } from './routes/crafting'
+import { Route as RequestsRouteImport } from './routes/requests'
 import { Route as RosterRouteImport } from './routes/roster'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SyncRouteImport } from './routes/sync'
+import { Route as ApiCraftingRouteImport } from './routes/api/crafting'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiIngestRouteImport } from './routes/api/ingest'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
@@ -31,6 +34,16 @@ const BankRoute = BankRouteImport.update({
   path: '/bank',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CraftingRoute = CraftingRouteImport.update({
+  id: '/crafting',
+  path: '/crafting',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RequestsRoute = RequestsRouteImport.update({
+  id: '/requests',
+  path: '/requests',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RosterRoute = RosterRouteImport.update({
   id: '/roster',
   path: '/roster',
@@ -44,6 +57,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const SyncRoute = SyncRouteImport.update({
   id: '/sync',
   path: '/sync',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCraftingRoute = ApiCraftingRouteImport.update({
+  id: '/api/crafting',
+  path: '/api/crafting',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiHealthRoute = ApiHealthRouteImport.update({
@@ -80,9 +98,12 @@ const ApiDiscordInteractionsRoute = ApiDiscordInteractionsRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/bank': typeof BankRoute
+  '/crafting': typeof CraftingRoute
+  '/requests': typeof RequestsRoute
   '/roster': typeof RosterRoute
   '/settings': typeof SettingsRoute
   '/sync': typeof SyncRoute
+  '/api/crafting': typeof ApiCraftingRoute
   '/api/health': typeof ApiHealthRoute
   '/api/ingest': typeof ApiIngestRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -93,9 +114,12 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/bank': typeof BankRoute
+  '/crafting': typeof CraftingRoute
+  '/requests': typeof RequestsRoute
   '/roster': typeof RosterRoute
   '/settings': typeof SettingsRoute
   '/sync': typeof SyncRoute
+  '/api/crafting': typeof ApiCraftingRoute
   '/api/health': typeof ApiHealthRoute
   '/api/ingest': typeof ApiIngestRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -107,9 +131,12 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/bank': typeof BankRoute
+  '/crafting': typeof CraftingRoute
+  '/requests': typeof RequestsRoute
   '/roster': typeof RosterRoute
   '/settings': typeof SettingsRoute
   '/sync': typeof SyncRoute
+  '/api/crafting': typeof ApiCraftingRoute
   '/api/health': typeof ApiHealthRoute
   '/api/ingest': typeof ApiIngestRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -122,9 +149,12 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/bank'
+    | '/crafting'
+    | '/requests'
     | '/roster'
     | '/settings'
     | '/sync'
+    | '/api/crafting'
     | '/api/health'
     | '/api/ingest'
     | '/auth/callback'
@@ -135,9 +165,12 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/bank'
+    | '/crafting'
+    | '/requests'
     | '/roster'
     | '/settings'
     | '/sync'
+    | '/api/crafting'
     | '/api/health'
     | '/api/ingest'
     | '/auth/callback'
@@ -148,9 +181,12 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/bank'
+    | '/crafting'
+    | '/requests'
     | '/roster'
     | '/settings'
     | '/sync'
+    | '/api/crafting'
     | '/api/health'
     | '/api/ingest'
     | '/auth/callback'
@@ -162,9 +198,12 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BankRoute: typeof BankRoute
+  CraftingRoute: typeof CraftingRoute
+  RequestsRoute: typeof RequestsRoute
   RosterRoute: typeof RosterRoute
   SettingsRoute: typeof SettingsRoute
   SyncRoute: typeof SyncRoute
+  ApiCraftingRoute: typeof ApiCraftingRoute
   ApiHealthRoute: typeof ApiHealthRoute
   ApiIngestRoute: typeof ApiIngestRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
@@ -189,6 +228,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BankRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/crafting': {
+      id: '/crafting'
+      path: '/crafting'
+      fullPath: '/crafting'
+      preLoaderRoute: typeof CraftingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/requests': {
+      id: '/requests'
+      path: '/requests'
+      fullPath: '/requests'
+      preLoaderRoute: typeof RequestsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/roster': {
       id: '/roster'
       path: '/roster'
@@ -208,6 +261,13 @@ declare module '@tanstack/react-router' {
       path: '/sync'
       fullPath: '/sync'
       preLoaderRoute: typeof SyncRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/crafting': {
+      id: '/api/crafting'
+      path: '/api/crafting'
+      fullPath: '/api/crafting'
+      preLoaderRoute: typeof ApiCraftingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/health': {
@@ -258,9 +318,12 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BankRoute: BankRoute,
+  CraftingRoute: CraftingRoute,
+  RequestsRoute: RequestsRoute,
   RosterRoute: RosterRoute,
   SettingsRoute: SettingsRoute,
   SyncRoute: SyncRoute,
+  ApiCraftingRoute: ApiCraftingRoute,
   ApiHealthRoute: ApiHealthRoute,
   ApiIngestRoute: ApiIngestRoute,
   AuthCallbackRoute: AuthCallbackRoute,

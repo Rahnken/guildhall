@@ -39,15 +39,71 @@ model Character {
   member          Member?  @relation(fields: [memberId], references: [id], onDelete: SetNull)
   /// The one character its member is known by; their others are alts.
   main            Boolean  @default(false)
+  professions     Profession[]
 
   @@index([memberId])
 }
 
+/// A profession a character has, as their Guildhall addon last saw it.
+model Profession {
+  id          Int           @id @default(autoincrement())
+  characterId Int
+  character   Character     @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  name        String
+  skill       Int
+  maxSkill    Int
+  scannedAt   DateTime
+  recipes     KnownRecipe[]
+
+  @@unique([characterId, name])
+  @@index([name])
+}
+
+/// A recipe from src/data/recipes.json that a character knows.
+model KnownRecipe {
+  professionId Int
+  profession   Profession @relation(fields: [professionId], references: [id], onDelete: Cascade)
+  spellId      Int
+
+  @@id([professionId, spellId])
+  @@index([spellId])
+}
+
 /// Someone who has signed in with Discord. The id is their Discord user id.
 model Member {
-  id         String      @id
+  id         String         @id
   name       String
   characters Character[]
+  requested  CraftRequest[] @relation("requested")
+  asked      CraftRequest[] @relation("asked")
+  crafting   CraftRequest[] @relation("crafting")
+}
+
+/// Something a member has asked the guild's crafters to make.
+model CraftRequest {
+  id           Int      @id @default(autoincrement())
+  /// The recipe, from src/data/recipes.json.
+  spellId      Int
+  quantity     Int      @default(1)
+  /// The requester's character to send it to.
+  deliverTo    String   @default("")
+  /// Whether the requester will send the materials.
+  hasMaterials Boolean  @default(false)
+  note         String   @default("")
+  /// open, accepted (someone is making it), done or cancelled.
+  status       String   @default("open")
+  requesterId  String
+  requester    Member   @relation("requested", fields: [requesterId], references: [id], onDelete: Cascade)
+  /// The crafter it was addressed to, if the requester picked one.
+  askedId      String?
+  asked        Member?  @relation("asked", fields: [askedId], references: [id], onDelete: SetNull)
+  /// Who is making it, or made it.
+  crafterId    String?
+  crafter      Member?  @relation("crafting", fields: [crafterId], references: [id], onDelete: SetNull)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([status])
 }
 
 model BankTab {

@@ -12,11 +12,13 @@ const read = (path) =>
   readFileSync(new URL(path, import.meta.url), 'utf8').replace(/\r\n/g, '\n')
 
 // The game loads an addon file as a function called with its name and a
-// shared table; the test file marks where that call goes.
-const addon = read('../addon/Guildhall/Guildhall.lua')
+// shared table; the test file marks where those calls go. RecipeIds.lua is
+// left out: the test supplies its own short lists in ADDON_TABLE.
+const load = (file) =>
+  `(function(...)\n${read(`../addon/Guildhall/${file}`)}\nend)("Guildhall", ADDON_TABLE);`
 const test = read('./addon.test.lua').replace(
   'ADDON_SOURCE()',
-  `(function(...)\n${addon}\nend)("Guildhall", {})`,
+  () => `${load('Guildhall.lua')}\n${load('Icons.lua')}`,
 )
 
 const state = lauxlib.luaL_newstate()

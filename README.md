@@ -11,7 +11,7 @@ The guild's name, description and invite link are data: officers edit them on th
 ## How the data gets there
 
 ```
-Guildhall addon  ->  SavedVariables/Guildhall.lua  ->  sync script or upload page  ->  site  ->  web pages
+companion addon  ->  SavedVariables/MankriksFluffers.lua  ->  sync script or upload page  ->  site  ->  web pages
    (in game)          (written on logout or /reload)                                        ->  Discord slash commands
                                                                                             ->  Discord channel posts
 ```
@@ -51,7 +51,7 @@ The Crafting page answers "who can make this?". It lists every recipe by profess
 
 **Where the recipes come from.** `src/data/recipes.json` is built by `npm run recipes:import` from the profession data that ships with the [OneForAll](https://www.curseforge.com/wow/addons/oneforall) addon (GPL-3.0-or-later, by Smoergi), which extracted it from the WoW Forever client database. OneForAll must be installed in the game folder to run the import. Rerun it after a game patch, once OneForAll has updated.
 
-**Where "who knows it" comes from.** The Guildhall addon saves each character's professions when they log in, and the recipes of a profession when its window is opened. Any member can then upload their own `Guildhall.lua` on the Crafting page; `npm run sync` sends it too. Rules:
+**Where "who knows it" comes from.** The companion addon saves each character's professions when they log in, and the recipes of a profession when its window is opened. Any member can then upload their own `MankriksFluffers.lua` on the Crafting page; `npm run sync` sends it too. Rules:
 
 - Only characters on the guild roster are stored.
 - A member's upload claims the characters in it that nobody has claimed, and skips characters someone else has claimed.
@@ -96,15 +96,19 @@ After any change to `prisma/schema.prisma`, run `npm run db:migrate -- --name <c
 
 ## The addon
 
-`addon/Guildhall` records two things:
+The addon is called **Mankrik's Fluffers Guildhall** in game: the folder is `MankriksFluffers` and its commands are `/gh` and `/fluffers`. It was plain Guildhall until another addon turned out to have that name, which is why the folder and saved file are named after the guild; `/fluffers` is there in case that addon is installed too and takes `/gh`; a `Guildhall.lua` saved by the old version is still read by the scripts and upload pages.
+
+`addon/MankriksFluffers` records two things:
 
 - **Roster**: every member, online or not. It saves at most once every five minutes. If "show offline members" is off, it switches it on for a moment to read the full list and then puts it back.
 - **Guild bank**: each tab, as you click on it. The game only knows a tab's contents once you have opened it.
 - **Professions**: the levels of the character you are playing, at login, and the recipes of each profession window you open.
 
+**Giving it to members.** The site serves the addon as `/MankriksFluffers.zip`, packed from `addon/MankriksFluffers` on every build (`scripts/zip-addon.mjs`), and the Crafting page links to it with install steps. Members unzip it into `Interface/AddOns` and restart the game. A new version reaches them when they download it again, so tell them when one matters.
+
 Officer notes are never recorded. `/gh status` shows what is saved and `/gh scan` saves the roster immediately.
 
-Install it with `npm run addon:install`, or copy the `addon/Guildhall` folder into the game's `Interface/AddOns`. Set `WOW_FOREVER_DIR` in `.env.local` if the game is not in the default location.
+Install it with `npm run addon:install`, or copy the `addon/MankriksFluffers` folder into the game's `Interface/AddOns`. Set `WOW_FOREVER_DIR` in `.env.local` if the game is not in the default location.
 
 The roster and bank capture have been confirmed working in the Forever client. The profession capture has only been run against the fake client in `tests/addon.test.lua`.
 
@@ -117,7 +121,7 @@ The game writes the addon's file on logout or `/reload`. Then either:
   - `npm run sync:watch` stays running and uploads every time the game saves. With it running, `/gh sync` in game (which reloads the interface) is all it takes to update the site.
   - `npm run sync -- --dry` shows what would be sent.
   - It needs `SITE_URL` and `INGEST_TOKEN` in `.env.local`. The token must be one of the site's `INGEST_TOKENS`.
-- **Upload page**, for any officer: sign in, open `/sync`, and choose `WTF/Account/<account>/SavedVariables/Guildhall.lua`.
+- **Upload page**, for any officer: sign in, open `/sync`, and choose `WTF/Account/<account>/SavedVariables/MankriksFluffers.lua`.
 
 Things to know:
 

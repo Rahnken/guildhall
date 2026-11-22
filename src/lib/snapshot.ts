@@ -1,10 +1,10 @@
 /**
- * The guild data that travels from the game to the site. The Guildhall addon
+ * The guild data that travels from the game to the site. The companion addon
  * writes it to SavedVariables; the sync script (or the officers' upload page)
  * turns that file into a Snapshot and sends it to the server, which checks it
  * again with parseSnapshot before storing anything.
  */
-import { parseSavedVariables } from './wow/luaTable'
+import { savedData } from './wow/addon'
 
 export type RosterMember = {
   name: string
@@ -140,12 +140,12 @@ export function parseSnapshot(input: unknown): Snapshot {
 }
 
 /**
- * Reads the addon's SavedVariables file (Guildhall.lua). One snapshot per
+ * Reads the addon's SavedVariables file (MankriksFluffers.lua). One snapshot per
  * guild the account has characters in, most recently captured first; guilds
  * with nothing usable are left out.
  */
 export function snapshotsFromSavedVariables(source: string): Array<Snapshot> {
-  const db = record(parseSavedVariables(source).GuildhallDB)
+  const db = savedData(source)
   const found: Array<Snapshot> = []
   for (const entry of Object.values(record(db.guilds))) {
     const g = record(entry)

@@ -45,8 +45,8 @@ function Sync() {
       <Card title="Upload from the addon">
         <ol className="mb-4 list-decimal space-y-1 pl-5 text-sm text-stone-300">
           <li>
-            In game, with the Guildhall addon on: open the guild roster, and
-            each guild bank tab you want updated.
+            In game, with the addon on: open the guild roster, and each guild
+            bank tab you want updated.
           </li>
           <li>
             Type <code className="text-sky-300">/reload</code> (or log out) so
@@ -55,7 +55,7 @@ function Sync() {
           <li>
             Choose{' '}
             <code className="text-sky-300">
-              WTF/Account/&lt;account&gt;/SavedVariables/Guildhall.lua
+              WTF/Account/&lt;account&gt;/SavedVariables/MankriksFluffers.lua
             </code>{' '}
             from your game folder.
           </li>

@@ -1,8 +1,12 @@
-// Copies addon/Guildhall into the game's AddOns folder.
+// Copies addon/MankriksFluffers into the game's AddOns folder, and removes
+// the copy installed under the addon's old name, Guildhall, so the two do not
+// both run.
 // Run with: npm run addon:install
-import { cpSync, existsSync } from 'node:fs'
+import { cpSync, existsSync, readFileSync, rmSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+
+const FOLDER = 'MankriksFluffers'
 
 const wowDir =
   process.env.WOW_FOREVER_DIR?.trim() ||
@@ -19,9 +23,20 @@ const source = join(
   dirname(fileURLToPath(import.meta.url)),
   '..',
   'addon',
-  'Guildhall',
+  FOLDER,
 )
-const target = join(addons, 'Guildhall')
+const target = join(addons, FOLDER)
 cpSync(source, target, { recursive: true })
-console.log(`Installed Guildhall to ${target}`)
-console.log('Restart the game, or /reload if it was already installed.')
+console.log(`Installed ${FOLDER} to ${target}`)
+
+// Only our own old addon: another addon is also called Guildhall.
+const old = join(addons, 'Guildhall')
+const oldToc = join(old, 'Guildhall.toc')
+if (
+  existsSync(oldToc) &&
+  readFileSync(oldToc, 'utf8').includes('## Author: Rahnken')
+) {
+  rmSync(old, { recursive: true })
+  console.log(`Removed the old copy at ${old}`)
+}
+console.log('Restart the game: a renamed addon is not picked up by /reload.')

@@ -1,11 +1,11 @@
 /**
- * The professions that travel from the game to the site. The Guildhall addon
+ * The professions that travel from the game to the site. The companion addon
  * saves, for each character played, its professions and the recipes seen in
  * each profession window; the member's upload page (or the sync script) turns
  * that file into a CraftingUpload, which the server checks again with
  * parseCrafting before storing anything.
  */
-import { parseSavedVariables } from './wow/luaTable'
+import { savedData } from './wow/addon'
 
 export type ProfessionSnapshot = {
   name: string
@@ -96,7 +96,7 @@ export function parseCrafting(input: unknown): CraftingUpload {
 
 /** Reads the professions out of the addon's SavedVariables file. */
 export function craftingFromSavedVariables(source: string): CraftingUpload {
-  const db = record(parseSavedVariables(source).GuildhallDB)
+  const db = savedData(source)
   return parseCrafting({
     characters: Object.values(record(db.characters)).map((entry) => {
       const c = record(entry)

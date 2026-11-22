@@ -1,4 +1,4 @@
-// Runs the Guildhall addon against a fake game client (tests/addon.test.lua)
+// Runs the companion addon against a fake game client (tests/addon.test.lua)
 // in a Lua interpreter, since the real client is not available outside the game.
 // Run with: npm run test:addon
 import { readFileSync } from 'node:fs'
@@ -15,10 +15,10 @@ const read = (path) =>
 // shared table; the test file marks where those calls go. RecipeIds.lua is
 // left out: the test supplies its own short lists in ADDON_TABLE.
 const load = (file) =>
-  `(function(...)\n${read(`../addon/Guildhall/${file}`)}\nend)("Guildhall", ADDON_TABLE);`
+  `(function(...)\n${read(`../addon/MankriksFluffers/${file}`)}\nend)("MankriksFluffers", ADDON_TABLE);`
 const test = read('./addon.test.lua').replace(
   'ADDON_SOURCE()',
-  () => `${load('Guildhall.lua')}\n${load('Icons.lua')}`,
+  () => `${load('MankriksFluffers.lua')}\n${load('Icons.lua')}`,
 )
 
 const state = lauxlib.luaL_newstate()

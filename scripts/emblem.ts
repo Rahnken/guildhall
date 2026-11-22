@@ -13,24 +13,16 @@
 // as the tabard's own emblem texture is coloured, and sets it on a round
 // badge in the tabard's background and border colours.
 // Reads WOW_FOREVER_DIR, WOW_ACCOUNT and WOW_EXPORT_DIR from .env.local.
-import {
-  existsSync,
-  readFileSync,
-  readdirSync,
-  statSync,
-  writeFileSync,
-} from 'node:fs'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 
 import sharp from 'sharp'
 
-import { parseSavedVariables } from '../src/lib/wow/luaTable'
+import { savedData } from '../src/lib/wow/addon'
+import { locateSaved } from './saved-file'
 
 const root = join(import.meta.dirname, '..')
-const wowDir =
-  process.env.WOW_FOREVER_DIR?.trim() ||
-  'C:/Program Files (x86)/World of Warcraft/_forever_'
 const exported =
   process.env.WOW_EXPORT_DIR?.trim() || join(homedir(), 'wow.export')
 
@@ -43,17 +35,8 @@ const record = (v: unknown): Loose =>
 
 /** The tabard the addon saved most recently: its colours and emblem files. */
 function savedTabard() {
-  const accounts = join(wowDir, 'WTF', 'Account')
-  const wanted = process.env.WOW_ACCOUNT?.trim()
-  const file = (existsSync(accounts) ? readdirSync(accounts) : [])
-    .filter((account) => !wanted || account === wanted)
-    .map((account) =>
-      join(accounts, account, 'SavedVariables', 'Guildhall.lua'),
-    )
-    .filter((path) => existsSync(path))
-    .sort((a, b) => statSync(b).mtimeMs - statSync(a).mtimeMs)[0]
-  if (!file) throw new Error(`No Guildhall.lua under ${accounts}.`)
-  const db = record(parseSavedVariables(readFileSync(file, 'utf8')).GuildhallDB)
+  const file = locateSaved()
+  const db = savedData(readFileSync(file, 'utf8'))
   for (const guild of Object.values(record(db.guilds))) {
     const tabard = record(record(guild).tabard)
     const files = Object.values(record(tabard.files)).map(Number)

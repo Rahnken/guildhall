@@ -15,8 +15,8 @@ todos.json
 # Prisma client (run npm run db:generate)
 src/generated
 
-# The addon download, packed from addon/Guildhall on every build
-public/Guildhall.zip
+# The addon download, packed from addon/MankriksFluffers on every build
+public/MankriksFluffers.zip
 
 # Local SQLite database
 *.db

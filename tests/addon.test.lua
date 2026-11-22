@@ -76,7 +76,7 @@ C_TooltipInfo = { GetItemByID = function(id)
 end }
 
 -- Saved by an earlier version while the client reported no realm.
-GuildhallDB = { guilds = {
+MankriksFluffersDB = { guilds = {
   ["Test Guild - "] = {name = "Test Guild", realm = "", bank = {tabs = {[7] = {scannedAt = 9, items = {}}}}},
   ["Test Guild - Testrealm"] = {name = "Test Guild", realm = "Testrealm", bank = {tabs = {}}},
 } }
@@ -85,10 +85,10 @@ ADDON_SOURCE()
 
 local function fire(e, a) handler(nil, e, a) end
 fire("ADDON_LOADED", "SomethingElse")
-fire("ADDON_LOADED", "Guildhall")
+fire("ADDON_LOADED", "MankriksFluffers")
 fire("PLAYER_ENTERING_WORLD")
 fire("GUILD_ROSTER_UPDATE")           -- sees 2 of 5: switches offline on, asks again
-local g = GuildhallDB.guilds["Test Guild - Testrealm"]
+local g = MankriksFluffersDB.guilds["Test Guild - Testrealm"]
 assert(g.roster == nil, "must not save a partial roster")
 assert(showOffline == true, "should have shown offline members")
 fire("GUILD_ROSTER_UPDATE")           -- full list now
@@ -109,7 +109,7 @@ fire("GUILDBANKBAGSLOTS_CHANGED")
 local tab = g.bank.tabs[2]
 assert(tab.name == "Materials" and #tab.items == 2 and tab.items[1].id == 2589 and tab.items[1].name == "Linen Cloth" and tab.items[2].count == 3)
 assert(g.bank.money == 1234567 and g.bank.tabCount == 3)
-local c = GuildhallDB.characters["Rahn Ken - Testrealm"]
+local c = MankriksFluffersDB.characters["Rahn Ken - Testrealm"]
 assert(c.professions.Tailoring.skill == 140 and c.professions.Tailoring.max == 150, "level read at login")
 assert(c.professions.Staves == nil and c.professions.Cooking == nil, "only professions are kept")
 skills[2][4] = 142                    -- two skill-ups since login
@@ -130,7 +130,7 @@ fire("SKILL_LINES_CHANGED")
 assert(c.professions.Enchanting == nil and c.professions.Cooking.skill == 12, "dropped profession forgotten, new one found")
 assert(known == 3 and c.professions.Tailoring.recipes["Linen Cloak"] == "enchant:2387")
 -- A record an earlier version saved under a blank realm was folded into the real one.
-assert(GuildhallDB.guilds["Test Guild - "] == nil and g.bank.tabs[7].scannedAt == 9, "blank-realm record adopted")
+assert(MankriksFluffersDB.guilds["Test Guild - "] == nil and g.bank.tabs[7].scannedAt == 9, "blank-realm record adopted")
 -- The client stops reporting its realm: records stay where they were.
 function GetRealmName() return "" end
 -- A newer client: no skills page or old windows, a profession book and a full recipe list.
@@ -158,23 +158,23 @@ assert(alchemy.recipes["Minor Healing Potion"] == "spell:2330" and alchemy.recip
 assert(alchemy.skill == 60, "a level of 0 from the window is not believed")
 potions[2330].name = "Elixir"; C_TradeSkillUI.GetBaseProfessionInfo = function() return {professionName = "Jewelcrafting"} end
 fire("TRADE_SKILL_LIST_UPDATE"); assert(alchemy.recipes["Elixir"] == nil, "a profession the character lacks is ignored")
-SlashCmdList["GUILDHALL"]("status"); SlashCmdList["GUILDHALL"]("scan"); SlashCmdList["GUILDHALL"]("wat")
-SlashCmdList["GUILDHALL"]("icons")
-local icons = GuildhallDB.icons
+SlashCmdList["MANKRIKSFLUFFERS"]("status"); SlashCmdList["MANKRIKSFLUFFERS"]("scan"); SlashCmdList["MANKRIKSFLUFFERS"]("wat")
+SlashCmdList["MANKRIKSFLUFFERS"]("icons")
+local icons = MankriksFluffersDB.icons
 assert(icons.items[4238] == 133639 and icons.items[11] == nil and icons.spells[7421] == 136244, "icons saved")
 assert(icons.tips[4238][1] == "Linen Bag" and icons.tips[4238][3] == "Bag	Cloth" and #icons.tips[4238] == 3, "tooltip saved without colour codes")
 assert(icons.quality[4238] == 1 and icons.spellText[7421] == "Teaches you to enchant." and icons.tips[12] == nil)
-SlashCmdList["GUILDHALL"]("icons"); assert(icons.tips[12] ~= nil, "a second run fills in what was loading")
+SlashCmdList["MANKRIKSFLUFFERS"]("icons"); assert(icons.tips[12] ~= nil, "a second run fills in what was loading")
 assert(g.tabard.background == "#000000" and g.tabard.border == "#ffffff" and g.tabard.emblem == "#cc1a1a", "tabard colours saved by /gh status")
 -- The Forever client gives the channels as 0 to 255.
 function GetGuildLogoInfo() return 252, 104, 145, 99, 179, 0, 55, 103, 0, "Emblem_101_15_TU_U", 101 end
 function GetGuildTabardFiles() return 1, 2, 180499, 180498, 5, 6 end
 C_GuildInfo = { GetGuildTabardInfo = function() return { emblemStyle = 101, emblemFileID = 180499, backgroundColor = {} } end }
-SlashCmdList["GUILDHALL"]("status")
+SlashCmdList["MANKRIKSFLUFFERS"]("status")
 assert(g.tabard.background == "#fc6891" and g.tabard.border == "#63b300" and g.tabard.emblem == "#376700", "tabard colours given as 0 to 255")
 assert(g.tabard.emblemFile == "Emblem_101_15_TU_U" and g.tabard.emblemIndex == 101 and g.tabard.files[3] == 180499, "which emblem it is")
 assert(g.tabard.info.emblemStyle == 101 and g.tabard.info.backgroundColor == nil, "newer tabard description, plain values only")
 local reloads = 0; function ReloadUI() reloads = reloads + 1 end
-SlashCmdList["GUILDHALL"]("sync"); assert(reloads == 1, "/gh sync reloads the interface")
-assert(GuildhallDB.characters["Rahn Ken - "] == nil and GuildhallDB.guilds["Test Guild - "] == nil, "blank realm made no new records")
+SlashCmdList["MANKRIKSFLUFFERS"]("sync"); assert(reloads == 1, "/gh sync reloads the interface")
+assert(MankriksFluffersDB.characters["Rahn Ken - "] == nil and MankriksFluffersDB.guilds["Test Guild - "] == nil, "blank realm made no new records")
 io.write("addon logic OK\n")

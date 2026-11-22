@@ -794,7 +794,7 @@ function Mine({ mine }: { mine: Awaited<ReturnType<typeof getMyRecipes>> }) {
       const crafting = craftingFromSavedVariables(await file.text())
       if (crafting.characters.length === 0) {
         setError(
-          'No professions in that file. Log in with the Guildhall addon on, open each profession, then /reload.',
+          'No professions in that file. Log in with the addon on, open each profession, then /reload.',
         )
         return
       }
@@ -838,13 +838,13 @@ function Mine({ mine }: { mine: Awaited<ReturnType<typeof getMyRecipes>> }) {
         </div>
       )}
       <p className="mb-2 text-sm text-stone-300">
-        The Guildhall addon reads what your characters can make, so nobody has
-        to type it in:
+        The Mankrik’s Fluffers Guildhall addon reads what your characters can
+        make, so nobody has to type it in:
       </p>
       <ol className="mb-4 list-decimal space-y-1 pl-5 text-sm text-stone-300">
         <li>
           <a
-            href="/Guildhall.zip"
+            href="/MankriksFluffers.zip"
             download
             className="font-medium text-sky-300 hover:underline"
           >
@@ -854,9 +854,10 @@ function Mine({ mine }: { mine: Awaited<ReturnType<typeof getMyRecipes>> }) {
           <code className="text-sky-300">
             World of Warcraft/_forever_/Interface/AddOns
           </code>
-          , so that folder has a <code className="text-sky-300">Guildhall</code>{' '}
-          folder in it. Then restart the game. You only do this once, and again
-          when an officer says there is a new version.
+          , so that folder has a{' '}
+          <code className="text-sky-300">MankriksFluffers</code> folder in it.
+          Then restart the game. You only do this once, and again when an
+          officer says there is a new version.
         </li>
         <li>
           In game, with the addon on, open each profession window once on each
@@ -869,7 +870,7 @@ function Mine({ mine }: { mine: Awaited<ReturnType<typeof getMyRecipes>> }) {
         <li>
           Choose{' '}
           <code className="text-sky-300">
-            WTF/Account/&lt;account&gt;/SavedVariables/Guildhall.lua
+            WTF/Account/&lt;account&gt;/SavedVariables/MankriksFluffers.lua
           </code>{' '}
           from your game folder. Characters in it that nobody has claimed become
           yours.

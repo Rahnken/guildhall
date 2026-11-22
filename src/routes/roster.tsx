@@ -1,7 +1,14 @@
 import { createFileRoute, redirect, useRouter } from '@tanstack/react-router'
 import { useEffect, useMemo, useState } from 'react'
 
-import { Card, Input, Select, Table } from '../components/ui'
+import {
+  Card,
+  ErrorText,
+  Input,
+  Select,
+  Table,
+  useAction,
+} from '../components/ui'
 import {
   ONLINE_FRESH_MINUTES,
   ago,
@@ -11,7 +18,12 @@ import {
   minutesSince,
   when,
 } from '../lib/format'
-import { getRoster } from '../server/guild.functions'
+import {
+  claimCharacter,
+  getRoster,
+  releaseCharacter,
+  setMain,
+} from '../server/guild.functions'
 
 export const Route = createFileRoute('/roster')({
   beforeLoad: ({ context }) => {
@@ -24,8 +36,20 @@ export const Route = createFileRoute('/roster')({
 type Sort = 'rank' | 'level' | 'name' | 'seen'
 
 function Roster() {
-  const { characters, rosterAt, now: loadedAt } = Route.useLoaderData()
+  const { characters, rosterAt, officer, now: loadedAt } = Route.useLoaderData()
   const router = useRouter()
+  const { busy, error, run } = useAction()
+  const act =
+    (change: (input: { data: { id: number } }) => Promise<void>) =>
+    (id: number) =>
+      run(async () => {
+        await change({ data: { id } })
+        await router.invalidate()
+      })
+  const claim = act(claimCharacter)
+  const release = act(releaseCharacter)
+  const makeMain = act(setMain)
+  const [mineOnly, setMineOnly] = useState(false)
   const [query, setQuery] = useState('')
   const [classToken, setClassToken] = useState('')
   const [sort, setSort] = useState<Sort>('rank')
@@ -59,10 +83,13 @@ function Roster() {
     const list = characters.filter(
       (c) =>
         (!filterOnline || c.online) &&
+        (!mineOnly || c.mine) &&
         (!classToken || c.classToken === classToken) &&
         (!q ||
           c.name.toLowerCase().includes(q) ||
           c.zone.toLowerCase().includes(q) ||
+          (c.player ?? '').toLowerCase().includes(q) ||
+          (c.altOf ?? '').toLowerCase().includes(q) ||
           c.note.toLowerCase().includes(q)),
     )
     // The server sends rank order; the others re-sort a copy.
@@ -75,7 +102,7 @@ function Roster() {
           (b.online ? -1 : (b.lastOnlineHours ?? Infinity)),
       )
     return list
-  }, [characters, query, classToken, sort, filterOnline])
+  }, [characters, query, classToken, sort, filterOnline, mineOnly])
 
   return (
     <Card
@@ -86,7 +113,7 @@ function Roster() {
     >
       <div className="mb-3 flex flex-wrap gap-2">
         <Input
-          placeholder="Search name, zone or note"
+          placeholder="Search name, player, zone or note"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="w-64"
@@ -125,6 +152,15 @@ function Roster() {
           />
           Online only{fresh ? ` (${onlineCount})` : ''}
         </label>
+        <label className="flex items-center gap-2 text-sm text-stone-200">
+          <input
+            type="checkbox"
+            checked={mineOnly}
+            onChange={(e) => setMineOnly(e.target.checked)}
+            className="size-4 accent-sky-500"
+          />
+          Mine
+        </label>
       </div>
       {age !== null && (
         <p className="mb-3 text-xs text-stone-500">
@@ -133,8 +169,18 @@ function Roster() {
             : `Online status is from ${ago(age)}, too old to filter by. It refreshes when someone with the addon types /reload.`}
         </p>
       )}
+      <ErrorText error={error} />
       <Table
-        head={['Name', 'Level', 'Class', 'Rank', 'Zone', 'Last seen', 'Note']}
+        head={[
+          'Name',
+          'Player',
+          'Level',
+          'Class',
+          'Rank',
+          'Zone',
+          'Last seen',
+          'Note',
+        ]}
       >
         {shown.map((c) => (
           <tr key={c.id}>
@@ -143,6 +189,30 @@ function Roster() {
               style={{ color: classColor(c.classToken) }}
             >
               {c.name}
+            </td>
+            <td className="px-2 py-1.5 whitespace-nowrap">
+              {c.player === null ? (
+                <RowAction disabled={busy} onClick={() => claim(c.id)}>
+                  This is mine
+                </RowAction>
+              ) : (
+                <>
+                  <span className="text-stone-200">{c.player}</span>
+                  <span className="ml-1.5 text-xs text-stone-500">
+                    {c.main ? 'main' : c.altOf ? `alt of ${c.altOf}` : ''}
+                  </span>
+                  {c.mine && !c.main && (
+                    <RowAction disabled={busy} onClick={() => makeMain(c.id)}>
+                      Make main
+                    </RowAction>
+                  )}
+                  {(c.mine || officer) && (
+                    <RowAction disabled={busy} onClick={() => release(c.id)}>
+                      {c.mine ? 'Not mine' : 'Remove claim'}
+                    </RowAction>
+                  )}
+                </>
+              )}
             </td>
             <td className="px-2 py-1.5">{c.level}</td>
             <td className="px-2 py-1.5 text-stone-300">
@@ -169,5 +239,19 @@ function Roster() {
         </p>
       )}
     </Card>
+  )
+}
+
+function RowAction(props: {
+  disabled: boolean
+  onClick: () => void
+  children: string
+}) {
+  return (
+    <button
+      type="button"
+      {...props}
+      className="ml-2 text-xs text-sky-400 first:ml-0 hover:underline disabled:opacity-50"
+    />
   )
 }

@@ -81,11 +81,18 @@ async function who(query: string): Promise<string> {
     where: { name: { contains: query } },
     orderBy: { name: 'asc' },
     take: 6,
+    include: { member: { include: { characters: { where: { main: true } } } } },
   })
   if (found.length === 0) return `Nobody in the guild matches “${query}”.`
   const lines = found.slice(0, 5).map((c) => {
     const where = c.zone ? `, ${c.zone}` : ''
-    return `**${c.name}**: level ${c.level} ${className(c.classToken)}, ${c.rank}${where} (${lastSeen(c.online, c.lastOnlineHours)})`
+    const main = c.member?.characters.at(0)?.name
+    const player = !c.member
+      ? ''
+      : c.main || !main
+        ? `. Played by ${c.member.name}`
+        : `. ${c.member.name}’s alt (main: ${main})`
+    return `**${c.name}**: level ${c.level} ${className(c.classToken)}, ${c.rank}${where} (${lastSeen(c.online, c.lastOnlineHours)})${player}`
   })
   if (found.length > 5) lines.push('More matches: narrow the name down.')
   return lines.join('\n')

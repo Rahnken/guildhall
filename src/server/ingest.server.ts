@@ -41,13 +41,15 @@ export async function ingest(
   const result = await prisma.$transaction(async (tx) => {
     const guild = await tx.guild.findUnique({ where: { id: 1 } })
     // An officer's alt in another guild must not replace this guild's roster.
-    if (
-      guild &&
-      (guild.name !== snapshot.guild.name ||
-        guild.realm !== snapshot.guild.realm)
-    )
+    // The realm only counts when both sides have one: the Forever client
+    // sometimes reports none, and the guild's name is then all there is.
+    const otherRealm =
+      guild?.realm && snapshot.guild.realm
+        ? guild.realm !== snapshot.guild.realm
+        : false
+    if (guild && (guild.name !== snapshot.guild.name || otherRealm))
       throw new IngestRefused(
-        `This site is for ${guild.name} (${guild.realm}), not ${snapshot.guild.name} (${snapshot.guild.realm})`,
+        `This site is for ${guild.name} (${guild.realm}), not ${snapshot.guild.name} (${snapshot.guild.realm || 'no realm given'})`,
       )
 
     const out: IngestResult = {
@@ -114,7 +116,8 @@ export async function ingest(
 
     const facts = {
       name: snapshot.guild.name,
-      realm: snapshot.guild.realm,
+      // A blank realm must not wipe the one already known.
+      realm: snapshot.guild.realm || guild?.realm || '',
       faction: snapshot.guild.faction,
       ...(roster && rosterIsNewer
         ? { rosterAt, rosterBy: roster.capturedBy }

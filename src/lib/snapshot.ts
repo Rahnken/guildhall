@@ -68,7 +68,8 @@ export function parseSnapshot(input: unknown): Snapshot {
   const guild = record(raw.guild)
   const name = text(guild.name)
   const realm = text(guild.realm)
-  if (!name || !realm) throw new Error('Snapshot has no guild name or realm')
+  // The realm can be blank: the Forever client does not always report one.
+  if (!name) throw new Error('Snapshot has no guild name')
 
   let roster: Snapshot['roster'] = null
   const rawRoster = record(raw.roster)
@@ -190,6 +191,6 @@ export const latest = (s: Snapshot): number =>
   Math.max(s.roster?.capturedAt ?? 0, ...s.bank.tabs.map((t) => t.scannedAt))
 
 export const describe = (s: Snapshot): string =>
-  `${s.guild.name} (${s.guild.realm}): ` +
+  `${s.guild.name}${s.guild.realm ? ` (${s.guild.realm})` : ''}: ` +
   (s.roster ? `${s.roster.members.length} members` : 'no roster') +
   `, ${s.bank.tabs.length} bank tab${s.bank.tabs.length === 1 ? '' : 's'}`

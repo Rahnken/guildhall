@@ -40,6 +40,7 @@ model Character {
   /// The one character its member is known by; their others are alts.
   main            Boolean  @default(false)
   professions     Profession[]
+  signups         EventSignup[]
 
   @@index([memberId])
 }
@@ -77,6 +78,7 @@ model Member {
   requested  CraftRequest[] @relation("requested")
   asked      CraftRequest[] @relation("asked")
   crafting   CraftRequest[] @relation("crafting")
+  signups    EventSignup[]
 }
 
 /// Something a member has asked the guild's crafters to make.
@@ -104,6 +106,47 @@ model CraftRequest {
   updatedAt    DateTime @updatedAt
 
   @@index([status])
+}
+
+/// Something the guild is doing together, set up by an officer.
+model Event {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String   @default("")
+  startsAt    DateTime
+  /// The time zone of the officer who set the time. A weekly event stays at
+  /// the same hour on their clock when the clocks change.
+  timeZone    String   @default("UTC")
+  /// Weekly. Only the next occurrence has this set: once it starts, a copy
+  /// a week later takes the flag over (src/server/events.server.ts).
+  repeats     Boolean  @default(false)
+  cancelled   Boolean  @default(false)
+  createdBy   String   @default("")
+  createdAt   DateTime @default(now())
+  signups     EventSignup[]
+
+  @@index([startsAt])
+}
+
+/// A member's answer to one event: which character, in which role.
+model EventSignup {
+  id          Int       @id @default(autoincrement())
+  eventId     Int
+  event       Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  memberId    String
+  member      Member    @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  /// Gone with the character if it leaves the guild.
+  characterId Int
+  character   Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  /// going, maybe or out.
+  reply       String
+  /// tank, healer or damage.
+  role        String
+  note        String    @default("")
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([eventId, memberId])
+  @@index([characterId])
 }
 
 model BankTab {

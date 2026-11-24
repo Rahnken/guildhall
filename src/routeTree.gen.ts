@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BankRouteImport } from './routes/bank'
 import { Route as CraftingRouteImport } from './routes/crafting'
+import { Route as EventsRouteImport } from './routes/events'
 import { Route as RequestsRouteImport } from './routes/requests'
 import { Route as RosterRouteImport } from './routes/roster'
 import { Route as SettingsRouteImport } from './routes/settings'
@@ -37,6 +38,11 @@ const BankRoute = BankRouteImport.update({
 const CraftingRoute = CraftingRouteImport.update({
   id: '/crafting',
   path: '/crafting',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventsRoute = EventsRouteImport.update({
+  id: '/events',
+  path: '/events',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RequestsRoute = RequestsRouteImport.update({
@@ -99,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/bank': typeof BankRoute
   '/crafting': typeof CraftingRoute
+  '/events': typeof EventsRoute
   '/requests': typeof RequestsRoute
   '/roster': typeof RosterRoute
   '/settings': typeof SettingsRoute
@@ -115,6 +122,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/bank': typeof BankRoute
   '/crafting': typeof CraftingRoute
+  '/events': typeof EventsRoute
   '/requests': typeof RequestsRoute
   '/roster': typeof RosterRoute
   '/settings': typeof SettingsRoute
@@ -132,6 +140,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/bank': typeof BankRoute
   '/crafting': typeof CraftingRoute
+  '/events': typeof EventsRoute
   '/requests': typeof RequestsRoute
   '/roster': typeof RosterRoute
   '/settings': typeof SettingsRoute
@@ -150,6 +159,7 @@ export interface FileRouteTypes {
     | '/'
     | '/bank'
     | '/crafting'
+    | '/events'
     | '/requests'
     | '/roster'
     | '/settings'
@@ -166,6 +176,7 @@ export interface FileRouteTypes {
     | '/'
     | '/bank'
     | '/crafting'
+    | '/events'
     | '/requests'
     | '/roster'
     | '/settings'
@@ -182,6 +193,7 @@ export interface FileRouteTypes {
     | '/'
     | '/bank'
     | '/crafting'
+    | '/events'
     | '/requests'
     | '/roster'
     | '/settings'
@@ -199,6 +211,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BankRoute: typeof BankRoute
   CraftingRoute: typeof CraftingRoute
+  EventsRoute: typeof EventsRoute
   RequestsRoute: typeof RequestsRoute
   RosterRoute: typeof RosterRoute
   SettingsRoute: typeof SettingsRoute
@@ -233,6 +246,13 @@ declare module '@tanstack/react-router' {
       path: '/crafting'
       fullPath: '/crafting'
       preLoaderRoute: typeof CraftingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/events': {
+      id: '/events'
+      path: '/events'
+      fullPath: '/events'
+      preLoaderRoute: typeof EventsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/requests': {
@@ -319,6 +339,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BankRoute: BankRoute,
   CraftingRoute: CraftingRoute,
+  EventsRoute: EventsRoute,
   RequestsRoute: RequestsRoute,
   RosterRoute: RosterRoute,
   SettingsRoute: SettingsRoute,

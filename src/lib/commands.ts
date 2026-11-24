@@ -33,4 +33,8 @@ export const COMMANDS = [
       },
     ],
   },
+  {
+    name: 'events',
+    description: 'What the guild has planned, and who is coming',
+  },
 ]

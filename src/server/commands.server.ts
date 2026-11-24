@@ -1,5 +1,6 @@
 /** Answers Discord slash commands; src/lib/commands.ts defines them. */
 import { prisma } from '#/db'
+import { ROLES } from '#/lib/events'
 import {
   ONLINE_FRESH_MINUTES,
   className,
@@ -7,6 +8,8 @@ import {
   lastSeen,
   minutesSince,
 } from '#/lib/format'
+import { config } from './config.server'
+import { listedEvents } from './events.server'
 
 type Interaction = {
   data?: {
@@ -31,6 +34,8 @@ export async function runCommand(interaction: Interaction): Promise<string> {
       return who(option('name'))
     case 'bank':
       return bank(option('item'))
+    case 'events':
+      return events()
     default:
       return 'I don’t know that command.'
   }
@@ -134,5 +139,29 @@ async function bank(query: string): Promise<string> {
     .slice(0, 10)
     .map(([name, t]) => `**${name}** x${t.count} (${[...t.tabs].join(', ')})`)
   if (totals.size > 10) lines.push(`…and ${totals.size - 10} more items.`)
+  return lines.join('\n')
+}
+
+async function events(): Promise<string> {
+  const listed = await listedEvents()
+  if (listed.length === 0) return 'Nothing is planned yet.'
+  const lines = listed.slice(0, 8).map((event) => {
+    // Discord shows these in each reader's own time zone.
+    const at = Math.floor(event.startsAt.getTime() / 1000)
+    const time = `<t:${at}:F> (<t:${at}:R>)`
+    if (event.cancelled) return `~~**${event.title}**~~ cancelled, was ${time}`
+    const going = event.signups.filter((s) => s.reply === 'going')
+    const maybe = event.signups.filter((s) => s.reply === 'maybe').length
+    const roles = ROLES.map((role) => {
+      const count = going.filter((s) => s.role === role.key).length
+      return `${count} ${(count === 1 ? role.label : role.plural).toLowerCase()}`
+    }).join(', ')
+    return (
+      `**${event.title}**${event.repeats ? ' (weekly)' : ''}: ${time}\n` +
+      `Going: ${going.length} (${roles})${maybe > 0 ? `, maybe: ${maybe}` : ''}`
+    )
+  })
+  if (listed.length > 8) lines.push(`…and ${listed.length - 8} more.`)
+  lines.push(`Reply at ${config.publicUrl}/events`)
   return lines.join('\n')
 }

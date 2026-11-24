@@ -30,11 +30,14 @@ Only one person with the addon is needed. Everyone else just uses the site or Di
 | `/crafting`          | Members         | Upload your own addon file so the site knows your professions and recipes             |
 | `/requests`          | Members         | Ask for something to be made; crafters take requests and mark them done               |
 | `/bank`              | Members         | Guild bank by tab, with search, and the bank's gold                                   |
+| `/events`            | Members         | What is planned and when; reply going, maybe or can't, with a character and a role    |
+| `/events`            | Officers        | Add, change, cancel and delete events, including weekly ones                          |
 | `/sync`              | Officers        | Upload the addon's saved file from the browser; recent upload history                 |
 | `/settings`          | Officers        | Edit the guild name, description and Discord invite shown on the public page          |
 | `/roster` in Discord | Server members  | Roster summary                                                                        |
 | `/who <name>`        | Server members  | Look up a character                                                                   |
 | `/bank [item]`       | Server members  | Search the bank, or list its tabs                                                     |
+| `/events` in Discord | Server members  | What is planned, when, and how many are coming in each role                           |
 | Channel posts        | Updates channel | Who joined, who left, and who passed a multiple of 10 levels, after each upload       |
 
 Slash command replies are only visible to the person who asked. Change `EPHEMERAL` in `src/routes/api/discord/interactions.ts` to make them public.
@@ -71,6 +74,16 @@ The Crafting page answers "who can make this?". It lists every recipe by profess
 A member asks for something to be made with "Request this" on a recipe: how many, which of their characters it goes to, whether they will send the materials, and optionally one crafter to ask. The Requests page lists what is waiting. Any member can take a request with "I'll make it", give it back, and mark it done; the requester can cancel, and officers can finish or cancel anyone's.
 
 Like claims, this runs on trust, and each step is posted to the updates channel. Those posts notify only the person concerned: the crafter who was asked, the requester when their request is taken, given back or done, and the crafter when a request they took is cancelled. A member can have 10 requests waiting at once, and finished ones stay listed for 14 days.
+
+## Events
+
+Officers add events on the Events page: a name, a start time, details, and whether it repeats every week. Members reply going, maybe or can't make it, with one of their claimed characters and the role it would play (tank, healer or damage), so each event shows who is coming in each role. A member has one reply per event and can change or remove it. An event stays listed, and open to replies, until three hours after it starts.
+
+Times are stored in UTC and shown in each visitor's own time zone; `/events` in Discord does the same. Nothing about events is posted to the updates channel.
+
+**Weekly events.** A weekly event is one row at a time. Once it starts, a copy a week later is made and becomes the repeating one, with no replies yet, so members can only reply to the next occurrence. Changing the upcoming one changes those after it; "Cancel this week" skips one week; unticking "Repeats every week", or deleting it, ends the series. The copy keeps the same hour on the clock of the officer who set the time, including across a clock change. There is no scheduler: the copy is made the next time anyone opens the page or runs `/events`.
+
+After deploying this, run `npm run discord:register` so Discord knows about `/events`.
 
 ## Colours
 
@@ -181,6 +194,7 @@ The deploy needs one repository secret, `FLY_API_TOKEN`: a deploy token for the 
 - `src/server/guild.functions.ts`: what the pages read and change, including character claims.
 - `src/lib/crafting.ts` and `src/server/crafting.server.ts`: the shape of a professions upload, matching it to the recipe list, and storing it.
 - `src/server/requests.functions.ts`: crafting requests and their channel posts.
+- `src/lib/events.ts`, `src/server/events.server.ts` and `src/server/events.functions.ts`: roles and replies, the weekly repeat, and what the Events page reads and changes.
 - `src/server/session.server.ts`: the signed sign-in cookie. There is no session table.
 - `src/routes`: file-based routes. `src/routeTree.gen.ts` is generated: don't edit it.
 

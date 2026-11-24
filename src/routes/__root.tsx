@@ -65,6 +65,9 @@ function RootComponent() {
               <Link to="/bank" className={link} activeProps={activeLink}>
                 Bank
               </Link>
+              <Link to="/events" className={link} activeProps={activeLink}>
+                Events
+              </Link>
               {viewer.officer && (
                 <>
                   <Link to="/sync" className={link} activeProps={activeLink}>
